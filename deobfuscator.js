@@ -1,6 +1,54 @@
 const babel = require("@babel/core");
 const generate = require("@babel/generator").default;
 
+function evaluation(left, operator, right) {
+	switch (operator) {
+		case "+": return left + right;
+		case "+=": return left += right;
+		case "-": return left - right;
+		case "-=": return left -= right;
+		case "*": return left * right;
+		case "*=": return left *= right;
+		case "/": return left / right;
+		case "=/": return left /= right;
+		case "%": return left % right;
+		case "%=": return left %= right;
+		case "**": return left ** right;
+		case "**=": return left **= right;
+		case "<<": return left << right;
+		case "<<=": return left <<= right;
+		case ">>": return left >> right;
+		case ">>=": return left >>= right;
+		case ">>>": return left >>> right;
+		case ">>>=": return left >>>= right;
+		case "&": return left & right;
+		case "&=": return left &= right;
+		case "^": return left ^ right;
+		case "^=": return left ^= right;
+		case "|": return left | right;
+		case "|=": return left |= right;
+		case "&&": return left && right;
+		case "&&=": return left &&= right;
+		case "||": return left || right;
+		case "||=": return left ||= right;
+		case "??": return left ?? right;
+		case "??=": return left ??= right;
+
+		case "==": return left == right;
+		case "!=": return left != right;
+		case "===": return left === right;
+		case "!==": return left !== right;
+		case ">": return left > right;
+		case ">=": return left >= right;
+		case "<": return left < right;
+		case "<=": return left <= right;
+
+		//Miss unary operators
+
+
+	}
+}
+
 const code = 
 `var a = 5 + 5 + 3 + 4;
 `;
@@ -17,7 +65,7 @@ babel.traverse(ast, {
 					path.node.type = "NumericLiteral";
 				else
 					path.node.type = "StringLiteral";
-				path.node.value = eval(path.node.left.value + path.node.operator + path.node.right.value);
+				path.node.value = evaluation(path.node.left.value, path.node.operator, path.node.right.value);
 			}
 		}
 	}
