@@ -16,9 +16,10 @@
        viene effettuata la visita dell'albero per controllare se quell'identificatore ha un valore costante (literal).
        nel caso ci fosse sostituisce l'identificatore con il valore
 
-**Link**
+**Links**
 * https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9251923
 * https://astexplorer.net/
+* https://github.com/jamiebuilds/babel-handbook/blob/master/translations/en/plugin-handbook.md
 * https://github.com/geeksonsecurity/illuminatejs
 * https://github.com/mindedsecurity/JStillery
 * https://github.com/oncecreated/jscrambler-reverse-engineering
