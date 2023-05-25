@@ -69,14 +69,20 @@ function searchNode(ast, nodeName) {
 
 const code = 
 `
+function add() {
+	let a = 3**3;
+}
 var a = 5 + 5 + 3 + 4;
 var b = a + 2;
 var c = a + b;
+var d = 'h' + 'e';
+var e = true + true;
+var f = true + 's';
 `;
 
 const ast = babel.parse(code);
 
-const pattern = /(Numeric|String)Literal/;
+const pattern = /(Numeric|String|Boolean)Literal/;
 
 //evaluation binary expressions
 
@@ -84,11 +90,16 @@ babel.traverse(ast, {
 	exit(path) {
 		if (path.node.type === "BinaryExpression") {
 			if (path.node.left.type.match(pattern) && path.node.right.type.match(pattern)) {
-				if (path.node.left.type === "NumericLiteral" && path.node.right.type === "NumericLiteral")
+				let value = evaluate(path.node.left.value, path.node.operator, path.node.right.value);
+				if ( (path.node.left.type === "NumericLiteral" || path.node.left.type === "BooleanLiteral") && (path.node.right.type === "NumericLiteral" || path.node.right.type === "BooleanLiteral")) {
 					path.node.type = "NumericLiteral";
-				else
+					path.node.extra = {"rawValue": value, "raw": `${value}`};
+				}
+				if (path.node.left.type === "StringLiteral" || path.node.right.type === "StringLiteral") {
 					path.node.type = "StringLiteral";
-				path.node.value = evaluate(path.node.left.value, path.node.operator, path.node.right.value);
+					path.node.extra = {"rawValue": value, "raw": `"${value}"`};
+				}
+				path.node.value = value;
 			}
 		}
 	}
@@ -103,6 +114,10 @@ babel.traverse(ast, {
 			const [type, value] = searchNode(ast, path.node.name);
 			if (type != null && value != null) {
 				path.node.type = type;
+				if (type === "NumericLiteral")
+					path.node.extra = {"rawValue": value, "raw": `${value}`};
+				if (type === "StringLiteral")
+					path.node.extra = {"rawValue": value, "raw": `"${value}"`};
 				path.node.value = value;
  			}
 		}
