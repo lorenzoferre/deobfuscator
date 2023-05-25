@@ -78,7 +78,7 @@ const ast = babel.parse(code);
 
 const pattern = /(Numeric|String)Literal/;
 
-//evaluation if binary expressions
+//evaluation binary expressions
 
 babel.traverse(ast, {
 	exit(path) {
