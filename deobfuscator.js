@@ -109,7 +109,7 @@ babel.traverse(ast, {
 
 babel.traverse(ast, {
 	exit(path) {
-		// check if the node type is an identifier and the identifier is right side of the express
+		// check if the node type is an identifier and the identifier is right side of the expression
 		if (path.node.type == "Identifier" && path.parent.id != path.node) {
 			const [type, value] = searchNode(ast, path.node.name);
 			if (type != null && value != null) {
