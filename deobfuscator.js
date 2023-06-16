@@ -93,6 +93,7 @@ babel.traverse(ast, {
 babel.traverse(ast, {
 	exit(path) {
 
+		// constant propagation
 		if (path.isReferencedIdentifier()) {
 			const binding = path.scope.bindings[path.node.name];
 			Object.assign(path.node, binding.path.node.init);
