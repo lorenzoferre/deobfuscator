@@ -62,24 +62,6 @@ function evaluateUnaryExpression(operator, prefix, value) {
 	}
 }
 
-function searchNode(ast, nodeName) {
-	let type = null;
-	let value = null;
-	babel.traverse(ast, {
-		enter(path) {
-			if (path.node.type == "VariableDeclarator") {
-				if (path.node.id.name == nodeName) {
-					if (path.node.init.type.match(pattern)) {
-						 type = path.node.init.type;
-						 value = path.node.init.value;
-					}
-				}
-			}
-		}
-	});
-	return [type, value]
-}
-
 const code = 
 `
 function add() {
