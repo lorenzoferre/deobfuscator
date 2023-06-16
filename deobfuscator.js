@@ -73,8 +73,10 @@ var c = a + b;
 var d = 'h' + 'e';
 var e = true + true;
 var f = true + 's';
-var d = !true;
-var e = +"41";
+var g = !true;
+var h = +!+[];
+var i = [+!+[]]+[+[]];
+var j = 1+[0];
 `;
 
 var ast = babel.parse(code);
@@ -99,16 +101,41 @@ babel.traverse(ast, {
 		// constant propagation
 		if (path.isReferencedIdentifier()) {
 			const binding = path.scope.bindings[path.node.name];
-			Object.assign(path.node, binding.path.node.init);
+			path.node.type = binding.path.node.init.type;
+			delete path.node.name;
+			path.node.value = binding.path.node.init.value
 		}
 
 		if (path.node.type == "BinaryExpression") {
+
+			if (path.node.left.type == "ArrayExpression" || path.node.right.type == "ArrayExpression") {
+				let value;
+				if (path.node.left.type == "ArrayExpression" && path.node.right.type == "ArrayExpression") {
+					if (path.node.left.elements.length == 1 && path.node.right.elements.length == 1) {
+						value = evaluateBinaryExpression([path.node.left.elements[0].value], path.node.operator, [path.node.right.elements[0].value]);
+					}
+
+				} else if (path.node.left.type == "ArrayExpression") {
+					if (path.node.left.elements.length == 1) {
+						value = evaluateBinaryExpression([path.node.left.elements[0].value], path.node.operator, path.node.right.value);
+					}
+				} else {
+					if (path.node.right.elements.length == 1) {
+						value = evaluateBinaryExpression(path.node.left.value, path.node.operator, [path.node.right.elements[0].value]);
+					}
+				}
+				path.node.type = "StringLiteral";
+				path.node.value = value;
+			}
+			
+
 			if (path.node.left.type.match(pattern) && path.node.right.type.match(pattern)) {
 				let value = evaluateBinaryExpression(path.node.left.value, path.node.operator, path.node.right.value);
 				if ( (path.node.left.type == "NumericLiteral" || path.node.left.type == "BooleanLiteral") && (path.node.right.type == "NumericLiteral" || path.node.right.type == "BooleanLiteral")) {
 					path.node.type = "NumericLiteral";
 					//path.node.extra = {"rawValue": value, "raw": `${value}`};
 				}
+
 				if (path.node.left.type == "StringLiteral" || path.node.right.type == "StringLiteral") {
 					path.node.type = "StringLiteral";
 					//path.node.extra = {"rawValue": value, "raw": `"${value}"`};
@@ -121,12 +148,22 @@ babel.traverse(ast, {
 		}
 
 		if (path.node.type == "UnaryExpression") {
-			let value = evaluateUnaryExpression(path.node.operator, path.node.prefix, path.node.argument.value)
-			path.node.type = path.node.argument.type;
-			path.node.value = value;
-			delete path.node.operator
-			delete path.node.prefix
-			delete path.node.argument;
+			
+			if (path.node.argument.type == "ArrayExpression") {
+				if (path.node.argument.elements.length == 0) {
+					path.node.argument.type = "NumericLiteral";
+					path.node.argument.value = 0;
+				}
+			}
+			
+			if (path.node.argument.type.match(pattern)) {
+				let value = evaluateUnaryExpression(path.node.operator, path.node.prefix, path.node.argument.value)
+				path.node.type = path.node.argument.type;
+				path.node.value = value
+				delete path.node.operator
+				delete path.node.prefix;
+				delete path.node.argument;
+			}
 		}
 	}
 
