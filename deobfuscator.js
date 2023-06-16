@@ -1,7 +1,7 @@
 var babel = require("@babel/core");
 var generate = require("@babel/generator").default;
 
-function evaluate(left, operator, right) {
+function evaluateBinaryExpression(left, operator, right) {
 	switch (operator) {
 		case "+": return left + right;
 		case "+=": return left += right;
@@ -45,9 +45,20 @@ function evaluate(left, operator, right) {
 
 		case "instanceof": return left instanceof right;
 		case "in": return left in right;
+	}
+}
 
-		//Miss unary operators
-
+function evaluateUnaryExpression(operator, prefix, value) {
+	switch (operator) {
+		case "typeof": return typeof value
+		case "+": return +value;
+		case "-": return -value;
+		case "!": return !value;
+		case "~": return ~value;
+		case "delete": return delete value;
+		case "void": return void value;
+		case "--": if (prefix) return --value; else return value--;
+		case "++": if (prefix) return ++value; else return value++
 	}
 }
 
@@ -107,7 +118,7 @@ babel.traverse(ast, {
 
 		if (path.node.type == "BinaryExpression") {
 			if (path.node.left.type.match(pattern) && path.node.right.type.match(pattern)) {
-				let value = evaluate(path.node.left.value, path.node.operator, path.node.right.value);
+				let value = evaluateBinaryExpression(path.node.left.value, path.node.operator, path.node.right.value);
 				if ( (path.node.left.type == "NumericLiteral" || path.node.left.type == "BooleanLiteral") && (path.node.right.type == "NumericLiteral" || path.node.right.type == "BooleanLiteral")) {
 					path.node.type = "NumericLiteral";
 					path.node.extra = {"rawValue": value, "raw": `${value}`};
