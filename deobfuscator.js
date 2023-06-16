@@ -120,27 +120,5 @@ babel.traverse(ast, {
 
 });
 
-// costant propagation
-
-/*
-babel.traverse(ast, {
-	exit(path) {
-		// check if the node type is an identifier and the identifier is right side of the expression
-		if (path.node.type == "Identifier" && path.parent.id != path.node) {
-			const [type, value] = searchNode(ast, path.node.name);
-			if (type != null && value != null) {
-				path.node.type = type;
-				if (type == "NumericLiteral")
-					path.node.extra = {"rawValue": value, "raw": `${value}`};
-				if (type == "StringLiteral")
-					path.node.extra = {"rawValue": value, "raw": `"${value}"`};
-				path.node.value = value;
- 			}
-		}
-	}
-
-});
-*/
-
 const output = generate(ast);
 console.log(output.code);
