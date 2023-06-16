@@ -90,6 +90,12 @@ const pattern = /(Numeric|String|Boolean)Literal/;
 
 babel.traverse(ast, {
 	exit(path) {
+
+		if (path.isReferencedIdentifier()) {
+			const binding = path.scope.bindings[path.node.name];
+			Object.assign(path.node, binding.path.node.init);
+		}
+
 		if (path.node.type == "BinaryExpression") {
 			if (path.node.left.type.match(pattern) && path.node.right.type.match(pattern)) {
 				let value = evaluate(path.node.left.value, path.node.operator, path.node.right.value);
