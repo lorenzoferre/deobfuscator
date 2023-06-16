@@ -87,6 +87,7 @@ babel.traverse(ast, {
 		delete path.node.start;
 		delete path.node.end;
 		delete path.node.loc;
+		delete path.node.extra
 	}
 })
 
@@ -106,11 +107,11 @@ babel.traverse(ast, {
 				let value = evaluateBinaryExpression(path.node.left.value, path.node.operator, path.node.right.value);
 				if ( (path.node.left.type == "NumericLiteral" || path.node.left.type == "BooleanLiteral") && (path.node.right.type == "NumericLiteral" || path.node.right.type == "BooleanLiteral")) {
 					path.node.type = "NumericLiteral";
-					path.node.extra = {"rawValue": value, "raw": `${value}`};
+					//path.node.extra = {"rawValue": value, "raw": `${value}`};
 				}
 				if (path.node.left.type == "StringLiteral" || path.node.right.type == "StringLiteral") {
 					path.node.type = "StringLiteral";
-					path.node.extra = {"rawValue": value, "raw": `"${value}"`};
+					//path.node.extra = {"rawValue": value, "raw": `"${value}"`};
 				}
 				delete path.node.left;
 				delete path.node.operator
@@ -126,7 +127,6 @@ babel.traverse(ast, {
 			delete path.node.operator
 			delete path.node.prefix
 			delete path.node.argument;
-			console.log(path.node);
 		}
 	}
 
