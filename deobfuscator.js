@@ -1,5 +1,5 @@
-const babel = require("@babel/core");
-const generate = require("@babel/generator").default;
+var babel = require("@babel/core");
+var generate = require("@babel/generator").default;
 
 function evaluate(left, operator, right) {
 	switch (operator) {
@@ -72,7 +72,7 @@ function searchNode(ast, nodeName) {
 const code = 
 `
 function add() {
-	let a = 3**3;
+	let a = 3 ** 3;
 }
 var a = 5 + 5 + 3 + 4;
 var b = a + 2;
@@ -82,14 +82,29 @@ var e = true + true;
 var f = true + 's';
 `;
 
-const ast = babel.parse(code);
+var ast = babel.parse(code);
 
 const pattern = /(Numeric|String|Boolean)Literal/;
+
+// delete start, end and loc fields
+babel.traverse(ast, {
+	enter(path) {
+		delete path.node.start;
+		delete path.node.end;
+		delete path.node.loc;
+	}
+})
 
 // evaluation binary expressions
 
 babel.traverse(ast, {
 	exit(path) {
+
+		if (path.isReferencedIdentifier()) {
+			const binding = path.scope.bindings[path.node.name];
+			Object.assign(path.node, binding.path.node.init);
+		}
+
 		if (path.node.type == "BinaryExpression") {
 			if (path.node.left.type.match(pattern) && path.node.right.type.match(pattern)) {
 				let value = evaluate(path.node.left.value, path.node.operator, path.node.right.value);
@@ -101,6 +116,9 @@ babel.traverse(ast, {
 					path.node.type = "StringLiteral";
 					path.node.extra = {"rawValue": value, "raw": `"${value}"`};
 				}
+				delete path.node.left;
+				delete path.node.operator
+				delete path.node.right;
 				path.node.value = value;
 			}
 		}
@@ -110,6 +128,7 @@ babel.traverse(ast, {
 
 // costant propagation
 
+/*
 babel.traverse(ast, {
 	exit(path) {
 		// check if the node type is an identifier and the identifier is right side of the expression
@@ -127,6 +146,7 @@ babel.traverse(ast, {
 	}
 
 });
+*/
 
 const output = generate(ast);
 console.log(output.code);
