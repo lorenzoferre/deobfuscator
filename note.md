@@ -1,5 +1,4 @@
 **To do**:
-1. controllare se nel punto 2 (Done) la visita avviene dalla radice o soltanto dallo scope di dove si trova la variabile
 2. evaluation di espressioni che contengono operatori unari
 3. evaluation di espressioni che contengono notazione jsfuck
 4. evaluation di espressioni che contengono funzioni interne a js (ex replace)
@@ -11,10 +10,7 @@
 
 **Done**:
 1. evaluation di espressioni binarie contententi numeri, stringhe e booleani costanti
-2. sostituizione di tutti i valori noti (calcolati nel punto 1) nelle espressioni che ne fanno uso
-    * ogni volta che nell'albero si trova un identificatore che sia a dx dell'espressione
-       viene effettuata la visita dell'albero per controllare se quell'identificatore ha un valore costante (literal).
-       nel caso ci fosse sostituisce l'identificatore con il valore
+2. sostituizione di tutti i valori noti tramite l'utilizzo di path.isReferencedIdentifier
 
 **Links**
 * https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9251923
