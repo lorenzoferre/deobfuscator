@@ -86,6 +86,15 @@ var ast = babel.parse(code);
 
 const pattern = /(Numeric|String|Boolean)Literal/;
 
+// delete start, end and loc fields
+babel.traverse(ast, {
+	enter(path) {
+		delete path.node.start;
+		delete path.node.end;
+		delete path.node.loc;
+	}
+})
+
 // evaluation binary expressions
 
 babel.traverse(ast, {
