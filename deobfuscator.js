@@ -73,6 +73,8 @@ var c = a + b;
 var d = 'h' + 'e';
 var e = true + true;
 var f = true + 's';
+var d = !true;
+var e = +"41";
 `;
 
 var ast = babel.parse(code);
@@ -115,6 +117,16 @@ babel.traverse(ast, {
 				delete path.node.right;
 				path.node.value = value;
 			}
+		}
+
+		if (path.node.type == "UnaryExpression") {
+			let value = evaluateUnaryExpression(path.node.operator, path.node.prefix, path.node.argument.value)
+			path.node.type = path.node.argument.type;
+			path.node.value = value;
+			delete path.node.operator
+			delete path.node.prefix
+			delete path.node.argument;
+			console.log(path.node);
 		}
 	}
 
