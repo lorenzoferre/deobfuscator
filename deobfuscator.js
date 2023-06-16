@@ -72,7 +72,7 @@ function searchNode(ast, nodeName) {
 const code = 
 `
 function add() {
-	let a = 3 ** 3;
+	let a = 3**3;
 }
 var a = 5 + 5 + 3 + 4;
 var b = a + 2;
@@ -86,25 +86,10 @@ var ast = babel.parse(code);
 
 const pattern = /(Numeric|String|Boolean)Literal/;
 
-// delete start, end and loc fields
-babel.traverse(ast, {
-	enter(path) {
-		delete path.node.start;
-		delete path.node.end;
-		delete path.node.loc;
-	}
-})
-
 // evaluation binary expressions
 
 babel.traverse(ast, {
 	exit(path) {
-
-		if (path.isReferencedIdentifier()) {
-			const binding = path.scope.bindings[path.node.name];
-			Object.assign(path.node, binding.path.node.init);
-		}
-
 		if (path.node.type == "BinaryExpression") {
 			if (path.node.left.type.match(pattern) && path.node.right.type.match(pattern)) {
 				let value = evaluate(path.node.left.value, path.node.operator, path.node.right.value);
