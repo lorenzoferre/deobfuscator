@@ -19,3 +19,4 @@
 * https://github.com/geeksonsecurity/illuminatejs
 * https://github.com/mindedsecurity/JStillery
 * https://github.com/oncecreated/jscrambler-reverse-engineering
+* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/lastIndexOf
