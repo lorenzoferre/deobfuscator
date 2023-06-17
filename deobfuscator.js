@@ -62,11 +62,12 @@ function evaluateUnaryExpression(operator, prefix, value) {
 	}
 }
 
-function evaluateProperty(object, property, arguments) {
-	const strType = "StringLiteral";
-	const numType = "NumericLiteral";
-	const boolType = "BooleanLiteral";
-	const arrType = "ArrayExpression";
+const strType = "StringLiteral";
+const numType = "NumericLiteral";
+const boolType = "BooleanLiteral";
+const arrType = "ArrayExpression";
+
+function evaluateStringProperty(object, property, arguments) {
 	switch (property) {
 
 		//String property
@@ -128,9 +129,32 @@ function evaluateProperty(object, property, arguments) {
 		case "trimStart": return object.trimStart();
 		case "trimLeft": return object.trimStart();
 		case "valueOf": return object.valueOf();
-		
-
 	}
+}
+
+function evaluateNumberProperty(object, property, arguments) {
+	switch (property) {
+		case "isFinite": return [boolType, object.isFinite()];
+		case "isInteger": return [boolType, object.isInteger()];
+		case "isNan": return [boolType, object.isNan()];
+		case "isSafeInteger": return [boolType, object.isSafeInteger()];
+		case "parseFLoat": return [numType, object.parseFloat(arguments[0].value)];
+		case "parseInt": return [numType, object.parseInt(arguments[0].value)];
+		
+		case "toExponential": if (arguments.length == 0) return [strType, object.toExponential()]; else return [strType, object.toExponential(arguments[0].value)];
+		case "toFixed": if (arguments.length == 0) return [strType, object.toFixed()]; else return [strType, object.toFixed(arguments[0].value)];
+		case "toLocaleString": {
+			switch (elements.length) {
+				case 0: return [strType, object.toLocaleString()];
+				case 1: return [strType, object.toLocaleString(arguments[0].value)];
+				case 2: return [strType, object.toLocaleString(arguments[0].value, arguments[1].value)];
+			}
+		}
+		case "toPrecision": if (arguments.length == 0) return [strType, object.toPrecision()]; else return [strType, object.toPrecision(arguments[0].value)];
+		case "toString": if (arguments.length == 0) return [strType, object.toString()]; else return [strType, object.toString(arguments[0].value)];
+		case "valueOf": return object.valueOf();
+	}
+		
 }
 
 const code = 
@@ -242,11 +266,13 @@ babel.traverse(ast, {
 		if (path.node.type == "CallExpression") {
 			let value;
 			if (path.node.callee.type == "MemberExpression") {
-				[type, value] = evaluateProperty(path.node.callee.object.value, path.node.callee.property.name, path.node.arguments);
-				path.node.type = type;
-				delete path.node.callee;
-				delete path.node.arguments;
-				path.node.value = value;					
+				if (path.node.callee.object.type == "StringLiteral") {
+					[type, value] = evaluateStringProperty(path.node.callee.object.value, path.node.callee.property.name, path.node.arguments);
+					path.node.type = type;
+					delete path.node.callee;
+					delete path.node.arguments;
+					path.node.value = value;
+				}					
 			}
 		}
 	}
