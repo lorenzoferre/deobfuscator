@@ -1,10 +1,10 @@
 var babel = require("@babel/core");
 var generate = require("@babel/generator").default;
 
-var binary_expression = require("./binary-expression.js");
-var unary_expression = require("./unary-expression.js");
-var string_property = require("./string-property.js")
-var number_property = require("./number-property.js");
+var binary_expression = require("./binary-expressions.js");
+var unary_expression = require("./unary-expressions.js");
+var string_property = require("./string-properties.js")
+var number_property = require("./number-properties.js");
 
 
 const code = 
