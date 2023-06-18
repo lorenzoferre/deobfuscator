@@ -40,8 +40,6 @@ babel.traverse(ast, {
 	}
 })
 
-// evaluation binary expressions
-
 babel.traverse(ast, {
 	exit(path) {
 
