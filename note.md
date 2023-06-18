@@ -1,11 +1,13 @@
 **To do**:
-1. evaluation di espressioni che contengono notazione jsfuck
-2. evaluation di espressioni che contengono funzioni interne a js (ex replace)
-3. funzione per trovare se sono presenti espressioni binarie costanti
-4. funzione per trovare se tutti i valori costanti sono stati propagati
+4. seperazione in più file (binary-expressions, unary-expression ecc.)
+5. implementazione dei test
+6. evaluation di espressioni che contengono notazione jsfuck
+. evaluation di espressioni che contengono funzioni interne a js (ex replace)
+7. funzione per trovare se sono presenti espressioni binarie costanti
+8. funzione per trovare se tutti i valori costanti sono stati propagati
     * visita dell'albero soltanto nello scope di dove si trova la variabile di cui si vuole cercare il valore
-5. funzione per rimuovere le variabili o parti di codice che non vengono utilizzati
-6. se le funzioni restituiscono valori costanti allora eliminare la funzione e tenere soltanto il valore restituito
+9. funzione per rimuovere le variabili o parti di codice che non vengono utilizzati
+10. se le funzioni restituiscono valori costanti allora eliminare la funzione e tenere soltanto il valore restituito
 
 **Done**:
 1. evaluation di espressioni binarie contententi numeri, stringhe e booleani costanti
