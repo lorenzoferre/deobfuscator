@@ -1,11 +1,10 @@
-var babel = require("@babel/core");
-var generate = require("@babel/generator").default;
-
-var binary_expression = require("./binary-expressions.js");
-var unary_expression = require("./unary-expressions.js");
-var string_property = require("./string-properties.js")
-var number_property = require("./number-properties.js");
-
+import { parse, traverse } from "@babel/core";
+import _generate from "@babel/generator";
+const generate = _generate.default;
+import { evalBinaryExpr } from "./binary-expressions.js";
+import { evalUnaryExpr } from "./unary-expressions.js";
+import { evalStringProp } from "./string-properties.js";
+import { evalNumberProp } from "./number-properties.js";
 
 const code = 
 `
@@ -26,12 +25,12 @@ var k = "hello";
 k.replace('h','hh');
 `;
 
-var ast = babel.parse(code);
+var ast = parse(code);
 
 const pattern = /(Numeric|String|Boolean)Literal/;
 
 // delete start, end and loc fields
-babel.traverse(ast, {
+traverse(ast, {
 	enter(path) {
 		delete path.node.start;
 		delete path.node.end;
@@ -40,7 +39,7 @@ babel.traverse(ast, {
 	}
 })
 
-babel.traverse(ast, {
+traverse(ast, {
 	exit(path) {
 
 		// constant propagation
@@ -57,16 +56,16 @@ babel.traverse(ast, {
 				let value;
 				if (path.node.left.type == "ArrayExpression" && path.node.right.type == "ArrayExpression") {
 					if (path.node.left.elements.length == 1 && path.node.right.elements.length == 1) {
-						value = binary_expression.evaluate([path.node.left.elements[0].value], path.node.operator, [path.node.right.elements[0].value]);
+						value = evalBinaryExpr([path.node.left.elements[0].value], path.node.operator, [path.node.right.elements[0].value]);
 					}
 
 				} else if (path.node.left.type == "ArrayExpression") {
 					if (path.node.left.elements.length == 1) {
-						value = binary_expression.evaluate([path.node.left.elements[0].value], path.node.operator, path.node.right.value);
+						value = evalBinaryExpr([path.node.left.elements[0].value], path.node.operator, path.node.right.value);
 					}
 				} else {
 					if (path.node.right.elements.length == 1) {
-						value = binary_expression.evaluate(path.node.left.value, path.node.operator, [path.node.right.elements[0].value]);
+						value = evalBinaryExpr(path.node.left.value, path.node.operator, [path.node.right.elements[0].value]);
 					}
 				}
 				path.node.type = "StringLiteral";
@@ -75,7 +74,7 @@ babel.traverse(ast, {
 			
 
 			if (path.node.left.type.match(pattern) && path.node.right.type.match(pattern)) {
-				let value = binary_expression.evaluate(path.node.left.value, path.node.operator, path.node.right.value);
+				let value = evalBinaryExpr(path.node.left.value, path.node.operator, path.node.right.value);
 				if ( (path.node.left.type == "NumericLiteral" || path.node.left.type == "BooleanLiteral") && (path.node.right.type == "NumericLiteral" || path.node.right.type == "BooleanLiteral")) {
 					path.node.type = "NumericLiteral";
 					//path.node.extra = {"rawValue": value, "raw": `${value}`};
@@ -102,7 +101,7 @@ babel.traverse(ast, {
 			}
 			
 			if (path.node.argument.type.match(pattern)) {
-				let value = unary_expression.evaluate(path.node.operator, path.node.prefix, path.node.argument.value)
+				let value = evalUnaryExpr(path.node.operator, path.node.prefix, path.node.argument.value)
 				path.node.type = path.node.argument.type;
 				path.node.value = value
 				delete path.node.operator
@@ -114,7 +113,7 @@ babel.traverse(ast, {
 		if (path.node.type == "CallExpression") {
 			let value;
 			if (path.node.callee.type == "MemberExpression") {
-				[type, value] = string_property.evaluate(path.node.callee.object.value, path.node.callee.property.name, path.node.arguments);
+				const [ type, value ] = evalStringProp(path.node.callee.object.value, path.node.callee.property.name, path.node.arguments);
 				path.node.type = type;
 				delete path.node.callee;
 				delete path.node.arguments;
