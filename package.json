@@ -1,0 +1,28 @@
+{
+  "name": "deobfuscator",
+  "version": "1.0.0",
+  "description": "deobfuscate javascript code with abstact syntax tree",
+  "main": "deobfuscator.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/loreferretti/deobfuscator.git"
+  },
+  "keywords": [
+    "javascript",
+    "deobfuscation",
+    "ast"
+  ],
+  "author": "Lorenzo Ferretti",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/loreferretti/deobfuscator/issues"
+  },
+  "homepage": "https://github.com/loreferretti/deobfuscator#readme",
+  "type": "module",
+  "devDependencies": {
+    "@babel/core": "^7.22.5"
+  }
+}
