@@ -1,1 +1,87 @@
-const test = require("node:test");
+import { test, describe } from "node:test";
+import assert from 'node:assert/strict';
+
+import { deobfuscate } from "./deobfuscator.js";
+import _generate from "@babel/generator";
+const generate = _generate.default;
+
+describe("binary expressions", () => {
+    test("arithmetic operators", () => {
+        assert.strictEqual(deobfuscate(`1 + 1;`), `2;`);
+        assert.strictEqual(deobfuscate(`1 - 1;`), `0;`);
+        assert.strictEqual(deobfuscate(`2 * 2;`), `4;`);
+        assert.strictEqual(deobfuscate(`4 / 2;`), `2;`);
+        assert.strictEqual(deobfuscate(`4 % 2;`), `0;`);
+        assert.strictEqual(deobfuscate(`1 + 1;`), `2;`);
+        assert.strictEqual(deobfuscate(`2 ** 2;`), `4;`);     
+    });
+
+    test("bitwise shift operators", () => {
+        assert.strictEqual(deobfuscate(`4 << 2;`), `16;`);
+        assert.strictEqual(deobfuscate(`8 >> 2;`), `2;`);
+        assert.strictEqual(deobfuscate(`-1 >>> 2;`), `1073741823;`);
+    });
+
+    test("logic operators", () => {
+        assert.strictEqual(deobfuscate(`true && false;`), `false;`);
+        assert.strictEqual(deobfuscate(`true || false;`), `true;`); 
+        assert.strictEqual(deobfuscate(`null ?? "hi"`), `"hi";`);
+        assert.strictEqual(deobfuscate(`"hi" ?? "hello"`), `"hi";`);  
+    });
+
+    test("binary bitwise operators", () => {
+        assert.strictEqual(deobfuscate(`5 & 3;`), `1;`);
+        assert.strictEqual(deobfuscate(`1 ^ 2;`), `3;`);
+        assert.strictEqual(deobfuscate(`1 | 2;`), `3;`);
+    });
+
+    test("relational operators", () => {
+        assert.strictEqual(deobfuscate(`1 < 2;`), `true;`);
+        assert.strictEqual(deobfuscate(`1 > 2;`), `false;`);
+        assert.strictEqual(deobfuscate(`1 <= 2;`), `true;`);
+        assert.strictEqual(deobfuscate(`1 >= 2;`), `false;`);
+    });
+
+    test("equality operators", () => {
+        assert.strictEqual(deobfuscate(`1 == 1;`), `true;`);
+        assert.strictEqual(deobfuscate(`1 == '1' ;`), `true;`);
+        assert.strictEqual(deobfuscate(`1 !== 2;`), `true;`);
+        assert.strictEqual(deobfuscate(`1 === 1 ;`), `true;`);
+        assert.strictEqual(deobfuscate(`1 === '1' ;`), `false;`);
+        assert.strictEqual(deobfuscate(`1 !== '1';`), `true;`);
+    });
+
+    test("binary property operators", () => {
+        assert.strictEqual(deobfuscate(`"name" in {"name":"me", "age":23};`, `true;`), `true;`);
+    })
+
+    
+
+});
+
+describe("unary expressions", () => {
+    test("typeof", () => {
+        assert.strictEqual(deobfuscate(`typeof "hi";`), `"string";`)
+    });
+    test("+", () => {
+        assert.strictEqual(deobfuscate(`+"1";`), `1;`)
+    });
+
+    test("-", (t) => {
+        assert.strictEqual(deobfuscate(`-"1"`),`-1;`)
+    });
+
+    test("!", (t) => {
+        assert.strictEqual(deobfuscate(`!true;`),`false;`)
+    });
+
+    test("~", (t) => {
+        assert.strictEqual(deobfuscate(`~1;`),`-2;`)
+    });
+
+    test("void", (t) => {
+        assert.strictEqual(deobfuscate(`void 1;`),`undefined;`)
+    });
+});
+
+
