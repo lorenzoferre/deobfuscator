@@ -73,6 +73,21 @@ function doEvalBinaryExpr(path) {
 	}
 }
 
+function doEvalLogicalExpr(path) {
+	let value = evalBinaryExpr(path.node.left.value, path.node.operator, path.node.right.value);
+	if (path.node.operator == "??") {
+		if (value == null)
+			path.node.type = "NullLiteral";
+		else
+			path.node.type = path.node.right.type
+	} else
+		path.node.type = "BooleanLiteral";
+	delete path.node.left;
+	delete path.node.operator;
+	delete path.node.right;
+	path.node.value = value;
+}
+
 function doEvalUnaryExpr(path) {
 				
 	if (path.node.argument.type == "ArrayExpression") {
@@ -124,6 +139,10 @@ export function deobfuscate(code) {
 			// constant propagation
 			if (path.isReferencedIdentifier() && path.node.name != "Number") {
 				doConstantPropagation(path);
+			}
+
+			if (path.node.type == "LogicalExpression") {
+				doEvalLogicalExpr(path);
 			}
 	
 			if (path.node.type == "BinaryExpression") {
