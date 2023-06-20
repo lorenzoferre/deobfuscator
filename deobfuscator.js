@@ -8,6 +8,169 @@ import { evalNumberProp } from "./number-properties.js";
 
 const pattern = /(Numeric|String|Boolean)Literal/;
 
+function transformOperatorAssignment(path, operator) {
+	
+	switch (operator) {
+		case "+=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "+";
+			path.node.right.right = nodeRight;
+		}
+		case "-=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "-";
+			path.node.right.right = nodeRight;
+		}
+
+		case "+=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "+";
+			path.node.right.right = nodeRight;
+		}
+
+		case "*=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "*";
+			path.node.right.right = nodeRight;
+		}
+
+		case "/=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "/";
+			path.node.right.right = nodeRight;
+		}
+
+		case "%=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "%";
+			path.node.right.right = nodeRight;
+		}
+
+		case "**=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "**";
+			path.node.right.right = nodeRight;
+		}
+
+		case "<<=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "<<";
+			path.node.right.right = nodeRight;
+		}
+
+		case ">>=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = ">>";
+			path.node.right.right = nodeRight;
+		}
+
+		case ">>>=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = ">>>";
+			path.node.right.right = nodeRight;
+		}
+
+		case "&=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "&";
+			path.node.right.right = nodeRight;
+		}
+
+		case "^=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "^";
+			path.node.right.right = nodeRight;
+		}
+
+		case "|=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "|";
+			path.node.right.right = nodeRight;
+		}
+
+		case "&&=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "&&";
+			path.node.right.right = nodeRight;
+		}
+		case "||=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "||";
+			path.node.right.right = nodeRight;
+		}
+
+		case "??=": {
+			path.node.operator = "=";
+			let nodeRight = path.node.right;
+			path.node.right = {};
+			path.node.right.type = "BinaryExpression";
+			path.node.right.left = path.node.left;
+			path.node.right.operator = "??";
+			path.node.right.right = nodeRight;
+		}
+	}
+}
+
 function doConstantPropagation(path) {
 	const binding = path.scope.bindings[path.node.name];
 	path.node.type = binding.path.node.init.type;
@@ -136,6 +299,11 @@ export function deobfuscate(code) {
 	deleteIrrelevantFields(ast);
 	traverse(ast, {
 		exit(path) {
+			
+			if (path.node.type == "AssignmentExpression") {
+				transformOperatorAssignment(path, path.node.operator);
+			}
+	
 			// constant propagation
 			if (path.isReferencedIdentifier() && path.node.name != "Number") {
 				doConstantPropagation(path);
