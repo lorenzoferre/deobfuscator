@@ -7,7 +7,7 @@ export function evalBinaryExpr(left, operator, right) {
 		case "*": return left * right;
 		case "*=": return left *= right;
 		case "/": return left / right;
-		case "=/": return left /= right;
+		case "/=": return left /= right;
 		case "%": return left % right;
 		case "%=": return left %= right;
 		case "**": return left ** right;
