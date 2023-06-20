@@ -59,4 +59,29 @@ describe("binary expressions", () => {
 
 });
 
+describe("unary expressions", () => {
+    test("typeof", () => {
+        assert.strictEqual(deobfuscate(`typeof "hi";`), `"string";`)
+    });
+    test("+", () => {
+        assert.strictEqual(deobfuscate(`+"1";`), `1;`)
+    });
+
+    test("-", (t) => {
+        assert.strictEqual(deobfuscate(`-"1"`),`-1;`)
+    });
+
+    test("!", (t) => {
+        assert.strictEqual(deobfuscate(`!true;`),`false;`)
+    });
+
+    test("~", (t) => {
+        assert.strictEqual(deobfuscate(`~1;`),`-2;`)
+    });
+
+    test("void", (t) => {
+        assert.strictEqual(deobfuscate(`void 1;`),`undefined;`)
+    });
+});
+
 
