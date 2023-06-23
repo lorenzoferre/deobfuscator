@@ -23,6 +23,7 @@
   "homepage": "https://github.com/loreferretti/deobfuscator#readme",
   "type": "module",
   "devDependencies": {
-    "@babel/core": "^7.22.5"
+    "@babel/core": "^7.22.5",
+    "@babel/types": "^7.22.5"
   }
 }
