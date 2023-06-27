@@ -3,7 +3,6 @@ import * as t from "@babel/types";
 import _generate from "@babel/generator";
 const generate = _generate.default;
 import { globalFunctions } from "./built-ins.js";
-import { isFunctionExpression } from "@babel/types";
 
 var ast;
 
