@@ -10,3 +10,6 @@ globalFunctions.set("decodeURI", () => { return t.memberExpression(t.identifier(
 globalFunctions.set("decodeURIComponent", () => { return t.memberExpression(t.identifier("String"), t.identifier("decodeURIComponent"), false); });
 globalFunctions.set("encodeURI", () => { return t.memberExpression(t.identifier("String"), t.identifier("encodeURI"), false); });
 globalFunctions.set("encodeURIComponent", () => { return t.memberExpression(t.identifier("String"), t.identifier("encodeURIComponent"), false); });
+
+globalFunctions.set("btoa", (string) => { return t.stringLiteral(btoa(string)) });
+globalFunctions.set("atob", (string) => { return t.stringLiteral(atob(string)) });
