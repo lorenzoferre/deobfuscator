@@ -1,4 +1,4 @@
-import { parse, transform, traverse } from "@babel/core";
+import { parse, traverse } from "@babel/core";
 import * as t from "@babel/types";
 import _generate from "@babel/generator";
 const generate = _generate.default;
@@ -32,7 +32,7 @@ function deleteUnreachableFunctions() {
 			}
 		});
 		ast = parse(generate(ast, {comments: false}).code);
-	} while (removed > 0);
+	} while (removed);
 }
 
 function evaluateConditionalStatement(path) {
@@ -133,7 +133,7 @@ function defeatingMapArrayMapping(path) {
 function costantPropagation(path) {
 	if (!path.node) return;
 	if (!path.node.init) return;
-	if (!t.isLiteral(path.node.init)) return;
+	if (!t.isLiteral(path.node.init) && t.isIdentifier(path.node.init) && !globalFunctions.has(path.node.init.name)) return;
 	const binding = path.scope.getBinding(path.node.id.name);
 	if (!binding.constant) return;
 	for (let refPath of binding.referencePaths) {
@@ -150,7 +150,7 @@ function transformBracketToDot(path) {
 	}
 }
 
-function renameVariablesSameScope(path) {
+function renameVariableSameScope(path) {
 	let idName = path.node.id.name;
 	let parentScope = path.scope.parent;
 	if (!parentScope) return;
@@ -203,7 +203,11 @@ function evaluate(path) {
 	if (t.isCallExpression(path)) {
 		let calleeName = path.node.callee.name;
 		if (globalFunctions.has(calleeName)) {
-			path.node.callee = globalFunctions.get(calleeName)();
+			if (calleeName === "btoa" || calleeName === "atob") {
+				path.replaceWith(globalFunctions.get(calleeName)(path.node.arguments[0].value));
+			} else {
+				path.node.callee = globalFunctions.get(calleeName)();
+			}
 		}
 	}
 	let evaluated = path.evaluate();
@@ -229,13 +233,7 @@ function evaluate(path) {
 	if (t.isUnaryExpression(valueNode) && value < 0) {
 		valueNode = t.numericLiteral(value);
 	}
-	if (t.isLiteral(valueNode)) {
-		path.replaceWith(valueNode);
-	} 
-	if (t.isArrayExpression(valueNode)) {
-		for(let element of valueNode.elements) {
-			if (!t.isLiteral(element)) return;
-		}
+	if (t.isLiteral(valueNode) || t.isArrayExpression(valueNode)) {
 		path.replaceWith(valueNode);
 	}
 }
@@ -248,7 +246,7 @@ export function deobfuscate(code) {
 		exit(path) {
 			// costant propagation
 			if (t.isVariableDeclarator(path)) {
-				renameVariablesSameScope(path);
+				renameVariableSameScope(path);
 				defeatingMapArrayMapping(path);
 				costantPropagation(path);
 			}
@@ -295,7 +293,8 @@ export function deobfuscate(code) {
 
 const code = 
 `
-console.log([+!+[]]+[+[]]);
+var a = "a|b|c";
+console.log(a.split("|"));
 `;
 const cleanCode = deobfuscate(code);
 console.log(cleanCode);
