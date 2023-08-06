@@ -6,7 +6,6 @@ import { globalFunctions } from "./built-ins.js";
 
 var ast;
 
-// delete start, end and loc fields
 function deleteIrrelevantFields() {
 	traverse(ast, {
 		exit(path) {
@@ -18,7 +17,6 @@ function deleteIrrelevantFields() {
 	});
 }
 
-// delete unreachable functions
 function deleteUnreachableFunctions() {
 	let removed;
 	do {
