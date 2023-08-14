@@ -9,5 +9,4 @@ export default function costantFolding(path) {
         refPath.replaceWith(path.node.init);
     }
     path.remove();
-    //path.stop();
 }
