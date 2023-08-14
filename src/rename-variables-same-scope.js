@@ -1,4 +1,5 @@
 export default function renameVariableSameScope(path) {
+    if (!path.node) return;
 	let idName = path.node.id.name;
 	let parentScope = path.scope.parent;
 	if (!parentScope) return;
