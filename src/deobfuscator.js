@@ -2,174 +2,20 @@ import { parse, traverse } from "@babel/core";
 import * as t from "@babel/types";
 import _generate from "@babel/generator";
 const generate = _generate.default;
-import { globalFunctions } from "./built-ins.js";
 
-var ast;
+import deleteIrrelevantFields from "./delete-irrelevant-fields.js";
+import deleteUnreachableFunctions from "./delete-unreachable-functions.js";
+import renameVariableSameScope from "./rename-variables-same-scope.js";
+import defeatingMapArrayMapping from "./defeating-map-array-mappings.js";
+import costantFolding from "./costant-folding.js";
+import evaluate from "./evaluate.js";
+import defeatingStringArrayMapping from "./defeating-string-array-mappings.js";
+import transformBracketToDot from "./transform-from-brackets-to-dots.js";
+import evaluateConditionalStatement from "./evaluate-conditional-statements.js";
+import replaceOutermostIife from "./replace-outermost-iifes.js";
 
-function deleteIrrelevantFields() {
-	traverse(ast, {
-		exit(path) {
-			delete path.node.start;
-			delete path.node.end;
-			delete path.node.loc;
-			delete path.node.extra;
-		}
-	});
-}
 
-function deleteUnreachableFunctions() {
-	let removed;
-	do {
-		removed = false;
-		traverse(ast, {
-			FunctionDeclaration(path) {
-				if (!path.scope.getBinding(path.node.id.name).referenced) {
-					path.remove();
-					removed = true;
-				}
-			}
-		});
-		ast = parse(generate(ast, {comments: false}).code);
-	} while (removed);
-}
-
-function evaluateConditionalStatement(path) {
-	let isTruthy = path.get("test").evaluateTruthy();
-	let node = path.node;
-
-	if (isTruthy) {
-		if (t.isBlockStatement(node.consequent)) {
-			path.replaceWithMultiple(node.consequent.body);
-		} else {
-			path.replaceWith(node.consequent);
-		}
-	} else if (node.alternate != null) {
-		if (t.isBlockStatement(node.alternate)) {
-			path.replaceWithMultiple(node.alternate.body);
-		} else {
-			path.replaceWith(node.alternate);
-		}
-	} else {
-		path.remove();
-	}
-}
-
-function defeatingStringArrayMapping(path) {
-	if (!path.node.property) return;
-	if (!t.isNumericLiteral(path.node.property)) return;
-
-	let idx = path.node.property.value;
-
-	let binding = path.scope.getBinding(path.node.object.name);
-	if (!binding) return;
-	
-	if (t.isVariableDeclarator(binding.path.node)) {
-		let array = binding.path.node.init;
-		if (idx >= array.length) return;
-
-		let member = array.elements[idx];
-
-		if (t.isLiteral(member)) {
-			path.replaceWith(member);
-			// FIXME scope should be updated
-		}
-	}
-}
-
-function defeatingMapArrayMapping(path) {
-	if (!path.node) return;
-	let node = path.node;
-	if (!node.init) return;
-	if (!t.isObjectExpression(node.init)) return;
-	let binding = path.scope.getBinding(node.id.name);
-	if (!binding.constant) return;
-	let properties = node.init.properties;
-	if (!properties) return;
-	
-	let kv = new Object();
-	
-	for (let prop of properties) {
-		if (!t.isIdentifier(prop.key) && !t.isStringLiteral(prop.key)) return;
-		let key;
-		if (t.isIdentifier(prop.key))
-			key = prop.key.name;
-		if (t.isStringLiteral(prop.key))
-			key = prop.key.value;
-		if (!t.isFunctionExpression(prop.value) && !t.isLiteral(prop.value)) return;
-		let value = prop.value;
-		kv[key] = value;
-	}
-	
-	for (let refPath of binding.referencePaths) {
-		if (!refPath.parentPath) return;
-		let parentNode = refPath.parentPath.node;
-		if (!t.isMemberExpression(parentNode)) return;
-		let key = parentNode.property.name;
-		if (!key)
-			key = parentNode.property.value;
-		let value = kv[key];
-		if (t.isLiteral(value)) {
-			refPath.parentPath.replaceWith(value);
-		} else if (t.isFunctionExpression(value)) {
-			let fnName = key;
-			let functionDecl = t.functionDeclaration(
-			  t.identifier(key),
-			  value.params,
-			  value.body,
-			  value.generator,
-			  value.async
-			);
-			
-			let parentOfDecl = path.parentPath.parentPath;
-			parentOfDecl.unshiftContainer("body", functionDecl);
-			refPath.parentPath.replaceWith(t.identifier(fnName)); 
-		}
-	}
-	path.remove();
-}
-
-function costantPropagation(path) {
-	if (!path.node) return;
-	if (!path.node.init) return;
-	if (!t.isLiteral(path.node.init) && t.isIdentifier(path.node.init) && !globalFunctions.has(path.node.init.name)) return;
-	const binding = path.scope.getBinding(path.node.id.name);
-	if (!binding.constant) return;
-	for (let refPath of binding.referencePaths) {
-	  refPath.replaceWith(path.node.init);
-	}
-	path.remove();
-}
-
-function transformBracketToDot(path) {
-	let property = path.node.callee.property;
-	if (t.isStringLiteral(property)) {
-		path.node.callee.property = t.identifier(property.value);
-		path.node.callee.computed = false;
-	}
-}
-
-function renameVariableSameScope(path) {
-	let idName = path.node.id.name;
-	let parentScope = path.scope.parent;
-	if (!parentScope) return;
-	for (let binding in parentScope.bindings) {
-		if (binding == idName) {
-			let newName = path.scope.generateUidIdentifier(idName);
-			path.scope.rename(idName, newName.name);
-		}
-	}
-}
-
-function replaceOutermostIife(path) {
-	if (!t.isProgram(path.parent)) return;
-	let node = path.node;
-	let expr = node.expression;
-	if (!t.isCallExpression(expr)) return;
-	let callee = expr.callee;
-	if (!t.isFunctionExpression(callee)) return;
-	let innerStatements = callee.body.body;
-	path.replaceWithMultiple(innerStatements);
-}
+// var ast;
 
 function unflatteningSwitch(path) {
 	let loopStmt = path.node;
@@ -196,57 +42,17 @@ function unflatteningSwitch(path) {
 	// it must be finished
 }
 
-function evaluate(path) {
-	// evaluate globalFunctions
-	if (t.isCallExpression(path)) {
-		let calleeName = path.node.callee.name;
-		if (globalFunctions.has(calleeName)) {
-			if (calleeName === "btoa" || calleeName === "atob") {
-				path.replaceWith(globalFunctions.get(calleeName)(path.node.arguments[0].value));
-			} else {
-				path.node.callee = globalFunctions.get(calleeName)();
-			}
-		}
-	}
-	let evaluated = path.evaluate();
-	if (!evaluated) return;
-	if (!evaluated.confident) return;
-	
-	let value = evaluated.value;
-	let valueNode = t.valueToNode(value);
-
-	// NaN and infinity values generates a binary expression
-	if (t.isBinaryExpression(valueNode) && t.isNumericLiteral(valueNode.left) && t.isNumericLiteral(valueNode.right)) {
-		if (valueNode.right.value === 0) {
-			if (valueNode.left.value === 1) {
-				path.replaceWith(t.identifier("Infinity"));
-				return;
-			} else if (valueNode.left.value === 0) {
-				path.replaceWith(t.identifier("NaN"));
-				return;
-			}
-		}
-	}
-	// valueToNode  return an unary expression when value is < 0 
-	if (t.isUnaryExpression(valueNode) && value < 0) {
-		valueNode = t.numericLiteral(value);
-	}
-	if (t.isLiteral(valueNode) || t.isArrayExpression(valueNode)) {
-		path.replaceWith(valueNode);
-	}
-}
-
 export function deobfuscate(code) {
-	ast = parse(code);
-	deleteUnreachableFunctions();
-	deleteIrrelevantFields();
+	let ast = parse(code);
+	deleteUnreachableFunctions(ast);
+	deleteIrrelevantFields(ast);
 	traverse(ast, {
 		exit(path) {
 			// costant propagation
 			if (t.isVariableDeclarator(path)) {
 				renameVariableSameScope(path);
 				defeatingMapArrayMapping(path);
-				costantPropagation(path);
+				costantFolding(path);
 			}
 			// evaluate expression with constant values
 			if (t.isBinaryExpression(path) ||
