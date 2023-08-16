@@ -1,10 +1,7 @@
 import { parse, traverse } from "@babel/core";
-import * as t from "@babel/types";
 import _generate from "@babel/generator";
 const generate = _generate.default;
 
-import deleteIrrelevantFields from "./delete-irrelevant-fields.js";
-import deleteUnreachableFunctions from "./delete-unreachable-functions.js";
 import deobfuscate from "./deobfuscate.js";
 
 
@@ -35,26 +32,30 @@ function unflatteningSwitch(path) {
   
 	// it must be finished
 }*/
-
-function initialize() {
-	let ast = parse(code);
-	deleteUnreachableFunctions(ast);
-	deleteIrrelevantFields(ast);
-	return ast;
+const code = 
+`
+function dead1(a, b) {
+    return a + b + 1;
 }
 
+function dead2() {
+    console.log("!!");
+}
+
+function dead3() {
+    dead1(1, 2);
+    dead2();
+}
+
+console.log("Hello");
+`;
  
-export function processDeobfuscation(code) {
-	let ast = initialize();
+export function execute() {
+	let ast = parse(code);
 	deobfuscate(ast);
-	const output = generate(ast, {comments: false});
+	const output = generate(ast, { comments: false });
 	return output.code
 }
 
-const code = 
-`
-var a = "a|b|c";
-console.log(a.split("|"));
-`;
-const cleanCode = processDeobfuscation(code);
+const cleanCode = execute();
 console.log(cleanCode);
