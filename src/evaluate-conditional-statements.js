@@ -1,18 +1,18 @@
 export default function evaluateConditionalStatement(path) {
 	let isTruthy = path.get("test").evaluateTruthy();
-	let node = path.node;
+	let { consequent, alternate  } = path.node;
 
 	if (isTruthy) {
-		if (t.isBlockStatement(node.consequent)) {
-			path.replaceWithMultiple(node.consequent.body);
+		if (t.isBlockStatement(consequent)) {
+			path.replaceWithMultiple(consequent.body);
 		} else {
-			path.replaceWith(node.consequent);
+			path.replaceWith(consequent);
 		}
-	} else if (node.alternate != null) {
-		if (t.isBlockStatement(node.alternate)) {
-			path.replaceWithMultiple(node.alternate.body);
+	} else if (alternate != null) {
+		if (t.isBlockStatement(alternate)) {
+			path.replaceWithMultiple(alternate.body);
 		} else {
-			path.replaceWith(node.alternate);
+			path.replaceWith(alternate);
 		}
 	} else {
 		path.remove();
