@@ -1,12 +1,12 @@
 import * as t from "@babel/types";
 
 export default function costantFolding(path) {
-    if (!path.node.init) return;
-    if (!t.isLiteral(path.node.init) && t.isIdentifier(path.node.init) && !globalFunctions.has(path.node.init.name)) return;
-    const binding = path.scope.getBinding(path.node.id.name);
-    if (!binding.constant) return;
-    for (let refPath of binding.referencePaths) {
-        refPath.replaceWith(path.node.init);
+    const { id, init } = path.node;
+    if (!t.isLiteral(init)) return;
+    let { constant, referencePaths } = path.scope.getBinding(id.name);
+    if (!constant) return;
+    for (let referencePath of referencePaths) {
+        referencePath.replaceWith(init);
     }
     path.remove();
 }
