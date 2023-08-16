@@ -9,35 +9,35 @@ import defeatingStringArrayMapping from "./defeating-string-array-mappings.js";
 import transformBracketToDot from "./transform-from-brackets-to-dots.js";
 import evaluateConditionalStatement from "./evaluate-conditional-statements.js";
 import replaceOutermostIife from "./replace-outermost-iifes.js";
-import { unaryExpression } from "@babel/types";
-import { logicalExpression } from "@babel/types";
+import deleteUnreachableFunctions from "./delete-unreachable-functions.js";
 
 export default function deobfuscate(ast) {
+    deleteUnreachableFunctions(ast);
     traverse(ast, {
         exit(path) {
-            // costant propagation
+            // costant folding
             if (t.isVariableDeclarator(path)) {
                 renameVariableSameScope(path);
                 defeatingMapArrayMapping(path);
                 costantFolding(path);
             }
-            // evaluate expression with constant values
+            // evaluate expressions with constant values
             if (t.isBinaryExpression(path) ||
                 t.isUnaryExpression(path) ||
                 t.isLogicalExpression(path)) {
                 evaluate(path);
             }
-            // defeating literal array mappings
+            // defeating literals array mappings
             if (t.isMemberExpression(path)) {
                 defeatingStringArrayMapping(path);
             }
-            // transform bracket notation into dot notation
+            // transform brackets notation into dots notation
             if (t.isCallExpression(path)) {
                 // ADD function for reversing jsfuck notation with vm module
                 transformBracketToDot(path);
                 evaluate(path);
             }
-            // evaluate if and ternary statementss
+            // evaluate if statements and ternary statements
             if (t.isIfStatement(path) || t.isConditionalExpression(path)) {
                 evaluateConditionalStatement(path);
             }
@@ -47,11 +47,11 @@ export default function deobfuscate(ast) {
             //    unflatteningSwitch(path);
             //}
 
-            // replace outermost iife with all code inside it
+            // replace outermost iife with all the code inside it
             if (t.isExpressionStatement(path)) {
                 replaceOutermostIife(path);
             }
-            // removes empty statement
+            // removes empty statements
             if (t.isEmptyStatement(path.node)) {
                 path.remove();
             }
