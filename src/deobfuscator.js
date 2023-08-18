@@ -48,11 +48,6 @@ export default class Deobfuscator {
                     if (t.isIfStatement(path) || t.isConditionalExpression(path)) {
                         self.#evaluateConditionalStatement(path);
                     }
-                    // control flow unflattening
-                    
-                    //if (t.isWhileStatement(path) || t.isForStatement(path)) {
-                    //    unflatteningSwitch(path);
-                    //}
 
                     // replace outermost iife with all the code inside it
                     if (t.isExpressionStatement(path)) {
