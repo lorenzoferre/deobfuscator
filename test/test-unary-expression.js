@@ -11,15 +11,15 @@ describe("unary expressions", () => {
         assert.strictEqual(new Deobfuscator(`+"1";`).deobfuscate(), `1;`)
     });
 
-    /*test("-", (t) => {
+    test("-", (t) => {
         assert.strictEqual(new Deobfuscator(`-"1"`).deobfuscate(),`-1;`)
-    });*/
+    });
 
     test("!", (t) => {
         assert.strictEqual(new Deobfuscator(`!true;`).deobfuscate(),`false;`)
     });
 
-    /*test("~", (t) => {
+    test("~", (t) => {
         assert.strictEqual(new Deobfuscator(`~1;`).deobfuscate(),`-2;`)
-    });*/
+    });
 });
