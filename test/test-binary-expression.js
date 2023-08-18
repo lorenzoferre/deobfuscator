@@ -15,9 +15,9 @@ describe("binary expressions", () => {
     });
 
     test("bitwise shift operators", () => {
-        /*assert.strictEqual(new Deobfuscator(`4 << 2;`).deobfuscate(), `16;`);
+        assert.strictEqual(new Deobfuscator(`4 << 2;`).deobfuscate(), `16;`);
         assert.strictEqual(new Deobfuscator(`8 >> 2;`).deobfuscate(), `2;`);
-        assert.strictEqual(new Deobfuscator(`-1 >>> 2;`).deobfuscate(), `1073741823;`);*/
+        assert.strictEqual(new Deobfuscator(`-1 >>> 2;`).deobfuscate(), `1073741823;`);
     });
 
     test("logic operators", () => {
