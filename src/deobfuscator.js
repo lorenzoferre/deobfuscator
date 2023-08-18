@@ -31,7 +31,7 @@ export default class Deobfuscator {
                     }
                     // defeating literals array mappings
                     if (t.isMemberExpression(path)) {
-                        self.#defeatingStringArrayMapping(path);
+                        self.#defeatingArrayMapping(path);
                     }
                     // transform brackets notation into dots notation
                     if (t.isCallExpression(path)) {
@@ -124,7 +124,7 @@ export default class Deobfuscator {
         }
     }
 
-    #defeatingStringArrayMapping(path) {
+    #defeatingArrayMapping(path) {
         const { node, scope } = path;
         const { property } = node;
         if (!property) return;
