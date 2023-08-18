@@ -66,7 +66,7 @@ export default class Deobfuscator {
         let removed;
         do {
             removed = false;
-            babel.traverse(this.#ast, {
+			babel.traverse(this.#ast, {
                 "VariableDeclarator|FunctionDeclaration"(path) {
                     const { node, scope } = path;
                     const { constant, referenced } = scope.getBinding(node.id.name);
@@ -100,7 +100,7 @@ export default class Deobfuscator {
 
     #costantPropagation(path) {
         const { id, init } = path.node;
-        if (!t.isLiteral(init)) return;
+        if (!t.isLiteral(init) && !t.isUnaryExpression(init)) return;
         const { constant, referencePaths } = path.scope.getBinding(id.name);
         if (!constant) return;
         for (const referencePath of referencePaths) {
@@ -110,11 +110,17 @@ export default class Deobfuscator {
         this.#changed = true;
     }
 
-    #evaluate(path) {
+	#evaluate(path) {
         const { confident, value } = path.evaluate();
         if (!confident) return;
-        let valueNode = t.valueToNode(value);
-        if (t.isLiteral(valueNode) /*|| (t.isUnaryExpression(valueNode) && typeof value == "number")*/ || t.isArrayExpression(valueNode)) {
+		let valueNode = t.valueToNode(value);
+		if (t.isUnaryExpression(path)) {
+			if (path.node.operator === "-" || path.node.operator === "~") {
+				path.replaceWith(valueNode);
+				path.skip();
+			}
+		}
+        if (t.isLiteral(valueNode) || t.isArrayExpression(valueNode)) {
             path.replaceWith(valueNode);
             this.#changed = true;
         }
@@ -177,7 +183,7 @@ export default class Deobfuscator {
         const { expression } = node;
         if (!t.isCallExpression(expression)) return;
         const { callee } = expression;
-        if (!t.isFunctionExpression(callee)) return;
+        if (!t.isFunctionExpression(callee) && !t.isArrowFunctionExpression(callee)) return;
         const { body } = callee.body;
         path.replaceWithMultiple(body);
         this.#changed = true;
