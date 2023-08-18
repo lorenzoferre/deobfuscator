@@ -75,4 +75,10 @@ describe("iife function", () => {
     });
 });
 
+describe("jsfuck notation", () => {
+    test("array with empty values", () => {
+        assert.strictEqual(new Deobfuscator(`+([[[[[[]], , ,]]]] != 0);`).deobfuscate(), `1;`)
+    });
+});
+
 
