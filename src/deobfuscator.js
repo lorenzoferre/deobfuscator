@@ -38,7 +38,12 @@ export default class Deobfuscator {
                         // TODO reverse jsfuck notation with vm module
                         self.#transformBracketToDot(path);
                         self.#evaluate(path);
-                    }
+					}
+					// used for evaluating jsfuck notation
+					if (t.isArrayExpression(path)) {
+						self.#changeEmptyElementToUndefined(path);
+					}
+
                     // evaluate if statements and ternary statements
                     if (t.isIfStatement(path) || t.isConditionalExpression(path)) {
                         self.#evaluateConditionalStatement(path);
@@ -115,10 +120,8 @@ export default class Deobfuscator {
         if (!confident) return;
 		let valueNode = t.valueToNode(value);
 		if (t.isUnaryExpression(path)) {
-			if (path.node.operator === "-" || path.node.operator === "~") {
-				path.replaceWith(valueNode);
-				path.skip();
-			}
+			path.replaceWith(valueNode);
+			path.skip();
 		}
         if (t.isLiteral(valueNode) || t.isArrayExpression(valueNode)) {
             path.replaceWith(valueNode);
@@ -153,7 +156,16 @@ export default class Deobfuscator {
             node.callee.computed = false;
             this.#changed = true;
         }
-    }
+	}
+	
+	#changeEmptyElementToUndefined(path) {
+		for (const element of path.get("elements")) {
+        if (!element.node) {
+			element.replaceWith(t.valueToNode(undefined));
+			this.#changed = true;
+        }
+      }
+	}
 
     #evaluateConditionalStatement(path) {
         const isTruthy = path.get("test").evaluateTruthy();
