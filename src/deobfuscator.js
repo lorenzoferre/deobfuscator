@@ -6,60 +6,54 @@ const generate = _generate.default;
 export default class Deobfuscator {
     #ast;
     #changed;
+    #visitor
 
     constructor(obfuscatedCode) {
         this.#ast = babel.parse(obfuscatedCode);
+        const self = this;
+        this.#visitor = {
+            // costant folding
+            VariableDeclarator(path) {
+                self.#renameVariableSameScope(path);
+                self.#costantPropagation(path);
+            },
+            // evaluate expressions with constant values
+            "BinaryExpression|UnaryExpression|LogicalExpression"(path) {
+                self.#evaluate(path);
+            },
+            // defeating literals array mappings
+            MemberExpression(path) {
+                self.#defeatingArrayMapping(path);
+            },
+            // transform brackets notation into dots notation
+            CallExpression(path) {
+                self.#transformBracketToDot(path);
+                self.#evaluate(path);
+            },
+            // used for evaluating specific jsfuck notation
+            ArrayExpression(path) {
+                self.#changeEmptyElementToUndefined(path);
+            },
+            // evaluate if statements and ternary statements
+            "IfStatement|ConditionalExpression"(path) {
+                self.#evaluateConditionalStatement(path);
+            },
+            // replace outermost iife with all the code inside it
+            ExpressionStatement(path) {
+                self.#replaceOutermostIife(path);
+            }
+        }
     }
 
     deobfuscate() {
-        const self = this;
         do {
             this.#changed = false;
-            self.#removeDeadCode();
-            babel.traverse(this.#ast, {
-                exit(path) {
-                    // costant folding
-                    if (t.isVariableDeclarator(path)) {
-                        self.#renameVariableSameScope(path);
-                        self.#costantPropagation(path);
-                    }
-                    // evaluate expressions with constant values
-                    if (t.isBinaryExpression(path) ||
-                        t.isUnaryExpression(path) ||
-                        t.isLogicalExpression(path)) {
-                            self.#evaluate(path);
-                    }
-                    // defeating literals array mappings
-                    if (t.isMemberExpression(path)) {
-                        self.#defeatingArrayMapping(path);
-                    }
-                    // transform brackets notation into dots notation
-                    if (t.isCallExpression(path)) {
-                        // TODO reverse jsfuck notation with vm module
-                        self.#transformBracketToDot(path);
-                        self.#evaluate(path);
-					}
-					// used for evaluating jsfuck notation
-					if (t.isArrayExpression(path)) {
-						self.#changeEmptyElementToUndefined(path);
-					}
-
-                    // evaluate if statements and ternary statements
-                    if (t.isIfStatement(path) || t.isConditionalExpression(path)) {
-                        self.#evaluateConditionalStatement(path);
-                    }
-
-                    // replace outermost iife with all the code inside it
-                    if (t.isExpressionStatement(path)) {
-                        self.#replaceOutermostIife(path);
-                    }
-                }
-            });
+            this.#removeDeadCode();
+            babel.traverse(this.#ast, this.#visitor);
             this.#ast = babel.parse(generate(this.#ast, {comments: false}).code);
-        } while(this.#changed);
-
+        } while (this.#changed);
+        
         return this.#generateOutputCode();
-
     }
 
     #removeDeadCode() {
