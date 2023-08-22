@@ -6,82 +6,79 @@ const generate = _generate.default;
 export default class Deobfuscator {
     #ast;
     #changed;
+    #removed;
+    #deobfuscateVisitor;
+    #removeDeadCodeVisitor;
 
     constructor(obfuscatedCode) {
         this.#ast = babel.parse(obfuscatedCode);
+        const self = this;
+
+        this.#deobfuscateVisitor = {
+            // costant folding
+            VariableDeclarator(path) {
+                self.#renameVariableSameScope(path);
+                self.#costantPropagation(path);
+            },
+            // evaluate expressions with constant values
+            "BinaryExpression|UnaryExpression|LogicalExpression"(path) {
+                self.#evaluate(path);
+            },
+            // defeating literals array mappings
+            MemberExpression(path) {
+                self.#defeatingArrayMapping(path);
+            },
+            // transform brackets notation into dots notation
+            CallExpression(path) {
+                self.#transformBracketToDot(path);
+                self.#evaluate(path);
+            },
+            // used for evaluating specific jsfuck notation
+            ArrayExpression(path) {
+                self.#changeEmptyElementToUndefined(path);
+            },
+            // evaluate if statements and ternary statements
+            "IfStatement|ConditionalExpression"(path) {
+                self.#evaluateConditionalStatement(path);
+            },
+            // replace outermost iife with all the code inside it
+            ExpressionStatement(path) {
+                self.#replaceOutermostIife(path);
+            },
+            EmptyStatement(path) {
+                path.remove();
+            }
+        };
+
+        this.#removeDeadCodeVisitor = {
+            "VariableDeclarator|FunctionDeclaration"(path) {
+                const { node, scope } = path;
+                const { constant, referenced } = scope.getBinding(node.id.name);
+                if (constant && !referenced) {
+                    path.remove();
+                    self.#removed = true;
+                }
+            }
+        };
     }
 
     deobfuscate() {
-        const self = this;
         do {
             this.#changed = false;
-            self.#removeDeadCode();
-            babel.traverse(this.#ast, {
-                exit(path) {
-                    // costant folding
-                    if (t.isVariableDeclarator(path)) {
-                        self.#renameVariableSameScope(path);
-                        self.#costantPropagation(path);
-                    }
-                    // evaluate expressions with constant values
-                    if (t.isBinaryExpression(path) ||
-                        t.isUnaryExpression(path) ||
-                        t.isLogicalExpression(path)) {
-                            self.#evaluate(path);
-                    }
-                    // defeating literals array mappings
-                    if (t.isMemberExpression(path)) {
-                        self.#defeatingArrayMapping(path);
-                    }
-                    // transform brackets notation into dots notation
-                    if (t.isCallExpression(path)) {
-                        // TODO reverse jsfuck notation with vm module
-                        self.#transformBracketToDot(path);
-                        self.#evaluate(path);
-					}
-					// used for evaluating jsfuck notation
-					if (t.isArrayExpression(path)) {
-						self.#changeEmptyElementToUndefined(path);
-					}
-
-                    // evaluate if statements and ternary statements
-                    if (t.isIfStatement(path) || t.isConditionalExpression(path)) {
-                        self.#evaluateConditionalStatement(path);
-                    }
-
-                    // replace outermost iife with all the code inside it
-                    if (t.isExpressionStatement(path)) {
-                        self.#replaceOutermostIife(path);
-                    }
-                }
-            });
+            this.#removeDeadCode();
+            babel.traverse(this.#ast, this.#deobfuscateVisitor);
             this.#ast = babel.parse(generate(this.#ast, {comments: false}).code);
-        } while(this.#changed);
-
+        } while (this.#changed);
+        
         return this.#generateOutputCode();
-
     }
 
     #removeDeadCode() {
-        let removed;
         do {
-            removed = false;
-			babel.traverse(this.#ast, {
-                "VariableDeclarator|FunctionDeclaration"(path) {
-                    const { node, scope } = path;
-                    const { constant, referenced } = scope.getBinding(node.id.name);
-                    if (constant && !referenced) {
-                        path.remove();
-                        removed = true;
-                    }
-                },
-                EmptyStatement(path) {
-                    path.remove();
-                }
-            });
+            this.#removed = false;
+            babel.traverse(this.#ast, this.#removeDeadCodeVisitor);
             this.#ast = babel.parse(generate(this.#ast, {comments: false}).code);
-        } while (removed);
-
+        } while (this.#removed);
     }
 
     #renameVariableSameScope(path) {
@@ -155,11 +152,11 @@ export default class Deobfuscator {
 	
 	#changeEmptyElementToUndefined(path) {
 		for (const element of path.get("elements")) {
-        if (!element.node) {
-			element.replaceWith(t.valueToNode(undefined));
-			this.#changed = true;
+            if (!element.node) {
+                element.replaceWith(t.valueToNode(undefined));
+                this.#changed = true;
+            }
         }
-      }
 	}
 
     #evaluateConditionalStatement(path) {
@@ -167,21 +164,21 @@ export default class Deobfuscator {
         const { consequent, alternate } = path.node;
         if (isTruthy == undefined) return;
         if (isTruthy) {
-            if (t.isBlockStatement(consequent)) {
-                path.replaceWithMultiple(consequent.body);
-            } else {
-                path.replaceWith(consequent);
-            }
+            this.#replaceWithBody(path, consequent);
         } else if (alternate != null) {
-            if (t.isBlockStatement(alternate)) {
-                path.replaceWithMultiple(alternate.body);
-            } else {
-                path.replaceWith(alternate);
-            }
+            this.#replaceWithBody(path, alternate);
         } else {
             path.remove();
         }
         this.#changed = true;
+    }
+
+    #replaceWithBody(path, branch) {
+        if (t.isBlockStatement(branch)) {
+            path.replaceWithMultiple(branch.body);
+        } else {
+            path.replaceWith(branch);
+        }
     }
 
     #replaceOutermostIife(path) {
