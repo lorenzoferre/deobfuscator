@@ -187,8 +187,7 @@ export default class Deobfuscator {
     const { expression } = node;
     if (!t.isCallExpression(expression)) return;
     const { callee } = expression;
-    if (!t.isFunctionExpression(callee) && !t.isArrowFunctionExpression(callee))
-      return;
+    if (!t.isFunctionExpression(callee) && !t.isArrowFunctionExpression(callee)) return;
     const { body } = callee.body;
     path.replaceWithMultiple(body);
     this.#changed = true;
