@@ -6,12 +6,15 @@ const generate = _generate.default;
 export default class Deobfuscator {
     #ast;
     #changed;
-    #visitor
+    #removed;
+    #deobfuscateVisitor;
+    #removeDeadCodeVisitor;
 
     constructor(obfuscatedCode) {
         this.#ast = babel.parse(obfuscatedCode);
         const self = this;
-        this.#visitor = {
+
+        this.#deobfuscateVisitor = {
             // costant folding
             VariableDeclarator(path) {
                 self.#renameVariableSameScope(path);
@@ -41,15 +44,29 @@ export default class Deobfuscator {
             // replace outermost iife with all the code inside it
             ExpressionStatement(path) {
                 self.#replaceOutermostIife(path);
+            },
+            EmptyStatement(path) {
+                path.remove();
             }
-        }
+        };
+
+        this.#removeDeadCodeVisitor = {
+            "VariableDeclarator|FunctionDeclaration"(path) {
+                const { node, scope } = path;
+                const { constant, referenced } = scope.getBinding(node.id.name);
+                if (constant && !referenced) {
+                    path.remove();
+                    self.#removed = true;
+                }
+            }
+        };
     }
 
     deobfuscate() {
         do {
             this.#changed = false;
             this.#removeDeadCode();
-            babel.traverse(this.#ast, this.#visitor);
+            babel.traverse(this.#ast, this.#deobfuscateVisitor);
             this.#ast = babel.parse(generate(this.#ast, {comments: false}).code);
         } while (this.#changed);
         
@@ -57,25 +74,11 @@ export default class Deobfuscator {
     }
 
     #removeDeadCode() {
-        let removed;
         do {
-            removed = false;
-			babel.traverse(this.#ast, {
-                "VariableDeclarator|FunctionDeclaration"(path) {
-                    const { node, scope } = path;
-                    const { constant, referenced } = scope.getBinding(node.id.name);
-                    if (constant && !referenced) {
-                        path.remove();
-                        removed = true;
-                    }
-                },
-                EmptyStatement(path) {
-                    path.remove();
-                }
-            });
+            this.#removed = false;
+            babel.traverse(this.#ast, this.#removeDeadCodeVisitor);
             this.#ast = babel.parse(generate(this.#ast, {comments: false}).code);
-        } while (removed);
-
+        } while (this.#removed);
     }
 
     #renameVariableSameScope(path) {
@@ -149,11 +152,11 @@ export default class Deobfuscator {
 	
 	#changeEmptyElementToUndefined(path) {
 		for (const element of path.get("elements")) {
-        if (!element.node) {
-			element.replaceWith(t.valueToNode(undefined));
-			this.#changed = true;
+            if (!element.node) {
+                element.replaceWith(t.valueToNode(undefined));
+                this.#changed = true;
+            }
         }
-      }
 	}
 
     #evaluateConditionalStatement(path) {
@@ -161,21 +164,21 @@ export default class Deobfuscator {
         const { consequent, alternate } = path.node;
         if (isTruthy == undefined) return;
         if (isTruthy) {
-            if (t.isBlockStatement(consequent)) {
-                path.replaceWithMultiple(consequent.body);
-            } else {
-                path.replaceWith(consequent);
-            }
+            this.#replaceWithBody(path, consequent);
         } else if (alternate != null) {
-            if (t.isBlockStatement(alternate)) {
-                path.replaceWithMultiple(alternate.body);
-            } else {
-                path.replaceWith(alternate);
-            }
+            this.#replaceWithBody(path, alternate);
         } else {
             path.remove();
         }
         this.#changed = true;
+    }
+
+    #replaceWithBody(path, branch) {
+        if (t.isBlockStatement(branch)) {
+            path.replaceWithMultiple(branch.body);
+        } else {
+            path.replaceWith(branch);
+        }
     }
 
     #replaceOutermostIife(path) {
