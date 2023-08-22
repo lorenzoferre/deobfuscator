@@ -3,6 +3,6 @@
 
 # javascript deobfuscator
 
-Deobfuscate javascript code using abstract syntaxt trees
-The documentation will be ready shortly
+Deobfuscate javascript code using abstract syntaxt trees \
+The documentation will be ready shortly \
 Feel free to contribute :)
