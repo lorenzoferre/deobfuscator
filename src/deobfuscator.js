@@ -18,7 +18,7 @@ export default class Deobfuscator {
       // costant folding
       VariableDeclarator(path) {
         self.#renameVariableSameScope(path);
-        self.#costantPropagation(path);
+        self.#constantPropagation(path);
       },
       // evaluate expressions with constant values
       "BinaryExpression|UnaryExpression|LogicalExpression"(path) {
@@ -95,7 +95,7 @@ export default class Deobfuscator {
     }
   }
 
-  #costantPropagation(path) {
+  #constantPropagation(path) {
     const { id, init } = path.node;
     if (!t.isLiteral(init) && !t.isUnaryExpression(init)) return;
     const { constant, referencePaths } = path.scope.getBinding(id.name);
