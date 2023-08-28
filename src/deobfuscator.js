@@ -129,14 +129,14 @@ export default class Deobfuscator {
     const index = property.value;
     const binding = scope.getBinding(node.object.name);
     if (!binding) return;
-    if (t.isVariableDeclarator(binding.path.node)) {
-      let array = binding.path.node.init;
-      if (index >= array.length) return;
-      let member = array.elements[index];
-      if (t.isLiteral(member)) {
-        path.replaceWith(member);
-        this.#changed = true;
-      }
+    if (!t.isVariableDeclarator(binding.path.node)) return;
+    if (!t.isArrayExpression(binding.path.node.init)) return;
+    let array = binding.path.node.init;
+    if (index >= array.length) return;
+    let member = array.elements[index];
+    if (t.isLiteral(member)) {
+      path.replaceWith(member);
+      this.#changed = true;
     }
   }
 
