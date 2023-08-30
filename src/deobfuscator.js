@@ -88,7 +88,7 @@ export default class Deobfuscator {
     const { parent } = scope;
     if (!parent) return;
     for (const binding in parent.bindings) {
-      if (binding == name) {
+      if (binding === name) {
         const newName = scope.generateUidIdentifier(name);
         scope.rename(name, newName.name);
       }
@@ -162,7 +162,7 @@ export default class Deobfuscator {
   #evaluateConditionalStatement(path) {
     const isTruthy = path.get("test").evaluateTruthy();
     const { consequent, alternate } = path.node;
-    if (isTruthy == undefined) return;
+    if (isTruthy === undefined) return;
     if (isTruthy) {
       this.#replaceWithBody(path, consequent);
     } else if (alternate != null) {
