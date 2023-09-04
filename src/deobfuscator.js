@@ -53,8 +53,9 @@ export default class Deobfuscator {
     this.#removeDeadCodeVisitor = {
       "VariableDeclarator|FunctionDeclaration"(path) {
         const { node, scope } = path;
-        const { constant, referenced } = scope.getBinding(node.id.name);
-        if (constant && !referenced) {
+        const binding = scope.getBinding(node.id.name);
+        if (!binding) return;
+        if (binding.constant && !binding.referenced) {
           path.remove();
           self.#removed = true;
         }
@@ -98,9 +99,10 @@ export default class Deobfuscator {
   #constantPropagation(path) {
     const { id, init } = path.node;
     if (!t.isLiteral(init) && !t.isUnaryExpression(init)) return;
-    const { constant, referencePaths } = path.scope.getBinding(id.name);
-    if (!constant) return;
-    for (const referencePath of referencePaths) {
+    const binding = path.scope.getBinding(id.name);
+    if (!binding) return;
+    if (!binding.constant) return;
+    for (const referencePath of binding.referencePaths) {
       referencePath.replaceWith(init);
     }
     path.remove();
