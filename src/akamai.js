@@ -19,18 +19,21 @@ const akamaiVisitor = {
     const { expression } = node;
     if (!t.isAssignmentExpression(expression)) return;
     const { left, right } = expression;
-    let binding = scope.getBinding(left.name);
+    const binding = scope.getBinding(left.name);
     if (!binding) return;
     if (!t.isVariableDeclarator(binding.path.node)) return;
     if (binding.path.node.init !== null) return;
     if (binding.kind !== "var") return;
-    if (expression !== binding.constantViolations.at(0).node) return;
-    let { parentPath } = path.parentPath.parentPath;
-    if (!parentPath) return;
-    if (!t.isSwitchStatement(parentPath)) return;
-    parentPath = parentPath.parentPath.parentPath;
+    if (binding.constantViolations.length !== 1) return;
+    if (expression !== binding.constantViolations[0].node) return;
+    const switchStatementPath = path.findParent(path => path.isSwitchStatement());
+    if (!switchStatementPath) return;
+    const loopStatementPath = switchStatementPath.findParent(
+      path => path.isWhileStatement() || path.isDoWhileStatement()
+    );
+    if (!loopStatementPath) return;
     const declaration = t.variableDeclaration("var", [t.variableDeclarator(left, right)]);
-    parentPath.insertBefore(declaration);
+    loopStatementPath.insertBefore(declaration);
     binding.path.remove();
     path.remove();
   },
@@ -42,7 +45,5 @@ const code = generate(ast, { comments: false }).code;
 
 const deobfuscator = new Deobfuscator(code);
 const deobfuscatedCode = deobfuscator.deobfuscate();
-
-//console.log(deobfuscatedCode);
 
 fs.writeFileSync(`${basePath}\\deobfuscatedExample.js`, deobfuscatedCode);
