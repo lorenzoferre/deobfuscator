@@ -6,15 +6,50 @@ const generate = _generate.default;
 export default class Deobfuscator {
   #ast;
   #changed;
-  #removed;
-  #deobfuscateVisitor;
-  #removeDeadCodeVisitor;
 
   constructor(obfuscatedCode) {
     this.#ast = babel.parse(obfuscatedCode);
-    const self = this;
+  }
 
-    this.#deobfuscateVisitor = {
+  deobfuscate() {
+    do {
+      this.#changed = false;
+      this.#removeDeadCode();
+      this.#traverseForDeobfuscating();
+      this.#ast = babel.parse(generate(this.#ast, { comments: false }).code);
+    } while (this.#changed);
+
+    return this.#generateOutputCode();
+  }
+
+  #removeDeadCode() {
+    let removed;
+    do {
+      removed = false;
+      removed = this.#traverseForRemovingDeadCode(removed);
+      this.#ast = babel.parse(generate(this.#ast, { comments: false }).code);
+    } while (removed);
+  }
+
+  #traverseForRemovingDeadCode(removed) {
+    const removeDeadCodeVisitor = {
+      "VariableDeclarator|FunctionDeclaration"(path) {
+        const { node, scope } = path;
+        const binding = scope.getBinding(node.id.name);
+        if (!binding) return;
+        if (binding.constant && !binding.referenced) {
+          path.remove();
+          removed = true;
+        }
+      },
+    };
+    babel.traverse(this.#ast, removeDeadCodeVisitor);
+    return removed;
+  }
+
+  #traverseForDeobfuscating() {
+    const self = this;
+    const deobfuscateVisitor = {
       // costant folding
       VariableDeclarator(path) {
         self.#renameVariableSameScope(path);
@@ -45,41 +80,14 @@ export default class Deobfuscator {
       ExpressionStatement(path) {
         self.#replaceOutermostIife(path);
       },
+      "WhileStatement|DoWhileStatement"(path) {
+        self.#controlFlowUnflattening(path);
+      },
       EmptyStatement(path) {
         path.remove();
       },
     };
-
-    this.#removeDeadCodeVisitor = {
-      "VariableDeclarator|FunctionDeclaration"(path) {
-        const { node, scope } = path;
-        const binding = scope.getBinding(node.id.name);
-        if (!binding) return;
-        if (binding.constant && !binding.referenced) {
-          path.remove();
-          self.#removed = true;
-        }
-      },
-    };
-  }
-
-  deobfuscate() {
-    do {
-      this.#changed = false;
-      this.#removeDeadCode();
-      babel.traverse(this.#ast, this.#deobfuscateVisitor);
-      this.#ast = babel.parse(generate(this.#ast, { comments: false }).code);
-    } while (this.#changed);
-
-    return this.#generateOutputCode();
-  }
-
-  #removeDeadCode() {
-    do {
-      this.#removed = false;
-      babel.traverse(this.#ast, this.#removeDeadCodeVisitor);
-      this.#ast = babel.parse(generate(this.#ast, { comments: false }).code);
-    } while (this.#removed);
+    babel.traverse(this.#ast, deobfuscateVisitor);
   }
 
   #renameVariableSameScope(path) {
@@ -194,6 +202,60 @@ export default class Deobfuscator {
     if (body.some(node => t.isReturnStatement(node))) return;
     path.replaceWithMultiple(body);
     this.#changed = true;
+  }
+
+  #controlFlowUnflattening(path) {
+    const { node, scope } = path;
+    const { body } = node.body;
+    if (!body) return;
+    const switchStatement = body[0];
+    if (!t.isSwitchStatement(switchStatement)) return;
+    const { discriminant } = switchStatement;
+    const binding = scope.getBinding(discriminant.name);
+    if (!binding) return;
+    if (!t.isLiteral(binding.path.node.init)) return;
+    const { name } = binding.path.node.id;
+    let { value } = binding.path.node.init;
+    let switchBlocks = [];
+    for (const switchCase of switchStatement.cases) {
+      // the test could be a literal or an identifier
+      const key = switchCase.test.value || switchCase.test.name;
+      switchBlocks[key] = switchCase.consequent;
+    }
+    const stuffInOrder = this.#insertInOrder(switchBlocks, value, name);
+    if (!stuffInOrder) return;
+    path.replaceWithMultiple(stuffInOrder);
+    this.#changed = true;
+  }
+
+  #insertInOrder(switchBlocks, value, name) {
+    let blocksByCase = switchBlocks[value];
+    if (!blocksByCase) return;
+    let stuffInOrder = [];
+    for (let _ in Object.keys(switchBlocks)) {
+      for (const block of blocksByCase) {
+        if (!t.isBlockStatement(block)) continue;
+        for (let statement of block.body) {
+          stuffInOrder.push(statement);
+          const value = this.#getNextValue(statement, name);
+          if (!value) continue;
+          blocksByCase = switchBlocks[value];
+        }
+      }
+    }
+    return stuffInOrder;
+  }
+
+  #getNextValue(statement, name) {
+    let value;
+    if (!t.isExpressionStatement(statement)) return;
+    const { expression } = statement;
+    if (!t.isAssignmentExpression(expression)) return;
+    const { left, right } = expression;
+    if (left.name === name) {
+      value = right.value || right.name;
+    }
+    return value;
   }
 
   #generateOutputCode() {
