@@ -50,14 +50,19 @@ export default class Deobfuscator {
   #traverseForDeobfuscating() {
     const self = this;
     const deobfuscateVisitor = {
-      // costant folding
+      // costant propagation
       VariableDeclarator(path) {
         self.#renameVariableSameScope(path);
         self.#constantPropagation(path);
       },
-      // evaluate expressions with constant values
+      // evaluate the expressions with constant values
       "BinaryExpression|UnaryExpression|LogicalExpression"(path) {
         self.#evaluate(path);
+      },
+      ExpressionStatement(path) {
+        self.#replaceSingleConstantViolation(path);
+        self.#moveDeclarationsBeforeLoop(path);
+        self.#replaceOutermostIife(path);
       },
       // defeating literals array mappings
       MemberExpression(path) {
@@ -72,13 +77,9 @@ export default class Deobfuscator {
       ArrayExpression(path) {
         self.#changeEmptyElementToUndefined(path);
       },
-      // evaluate if statements and ternary statements
+      // evaluate if there are statements and ternary statements
       "IfStatement|ConditionalExpression"(path) {
         self.#evaluateConditionalStatement(path);
-      },
-      // replace outermost iife with all the code inside it
-      ExpressionStatement(path) {
-        self.#replaceOutermostIife(path);
       },
       "WhileStatement|DoWhileStatement"(path) {
         self.#controlFlowUnflattening(path);
@@ -105,9 +106,10 @@ export default class Deobfuscator {
   }
 
   #constantPropagation(path) {
-    const { id, init } = path.node;
+    const { node, scope } = path;
+    const { id, init } = node;
     if (!t.isLiteral(init) && !t.isUnaryExpression(init)) return;
-    const binding = path.scope.getBinding(id.name);
+    const binding = scope.getBinding(id.name);
     if (!binding) return;
     if (!binding.constant) return;
     for (const referencePath of binding.referencePaths) {
@@ -204,6 +206,52 @@ export default class Deobfuscator {
     this.#changed = true;
   }
 
+  #replaceSingleConstantViolation(path) {
+    const { node, scope } = path;
+    const { expression } = node;
+    if (!t.isAssignmentExpression(expression)) return;
+    const { left, right } = expression;
+    const binding = scope.getBinding(left.name);
+    if (!binding) return;
+    if (binding.scope !== scope) return;
+    if (!this.#hasSingleConstantViolation(binding, expression)) return;
+    const declaration = t.variableDeclaration("var", [t.variableDeclarator(left, right)]);
+    binding.path.remove();
+    path.replaceWith(declaration);
+    this.#changed = true;
+  }
+
+  #moveDeclarationsBeforeLoop(path) {
+    const { node, scope } = path;
+    const { expression } = node;
+    if (!t.isAssignmentExpression(expression)) return;
+    const { left, right } = expression;
+    const binding = scope.getBinding(left.name);
+    if (!binding) return;
+    if (binding.scope === scope) return;
+    if (!this.#hasSingleConstantViolation(binding, expression)) return;
+    const declaration = t.variableDeclaration("var", [t.variableDeclarator(left, right)]);
+    const switchStatementPath = path.find(path => path.isSwitchStatement());
+    if (!switchStatementPath) return;
+    const loopStatementPath = switchStatementPath.find(
+      path => path.isWhileStatement() || path.isDoWhileStatement()
+    );
+    if (!loopStatementPath) return;
+    loopStatementPath.insertBefore(declaration);
+    binding.path.remove();
+    path.remove();
+    this.#changed = true;
+  }
+
+  #hasSingleConstantViolation(binding, expression) {
+    if (!t.isVariableDeclarator(binding.path.node)) return;
+    if (binding.path.node.init !== null) return;
+    if (binding.kind !== "var") return;
+    if (binding.constantViolations.length !== 1) return;
+    if (expression !== binding.constantViolations[0].node) return;
+    return true;
+  }
+
   #controlFlowUnflattening(path) {
     const { node, scope } = path;
     const { body } = node.body;
@@ -217,45 +265,39 @@ export default class Deobfuscator {
     const { name } = binding.path.node.id;
     let { value } = binding.path.node.init;
     let switchBlocks = [];
+    let stuffInOrder = [];
     for (const switchCase of switchStatement.cases) {
       // the test could be a literal or an identifier
       const key = switchCase.test.value || switchCase.test.name;
       switchBlocks[key] = switchCase.consequent;
     }
-    const stuffInOrder = this.#insertInOrder(switchBlocks, value, name);
-    if (!stuffInOrder) return;
-    path.replaceWithMultiple(stuffInOrder);
-    this.#changed = true;
-  }
-
-  #insertInOrder(switchBlocks, value, name) {
-    let blocksByCase = switchBlocks[value];
-    if (!blocksByCase) return;
-    let stuffInOrder = [];
-    for (let _ in Object.keys(switchBlocks)) {
+    // TODO this loop should be reafactored
+    for (let i = 0; i < Object.keys(switchBlocks).length; i++) {
+      let blocksByCase = switchBlocks[value];
+      if (!blocksByCase) return;
       for (const block of blocksByCase) {
         if (!t.isBlockStatement(block)) continue;
         for (let statement of block.body) {
           stuffInOrder.push(statement);
-          const value = this.#getNextValue(statement, name);
-          if (!value) continue;
+          const nextValue = this.#getNextValue(statement, name);
+          if (!nextValue) continue;
+          value = nextValue;
           blocksByCase = switchBlocks[value];
         }
       }
     }
-    return stuffInOrder;
+    path.replaceWithMultiple(stuffInOrder);
+    this.#changed = true;
   }
 
   #getNextValue(statement, name) {
-    let value;
     if (!t.isExpressionStatement(statement)) return;
     const { expression } = statement;
     if (!t.isAssignmentExpression(expression)) return;
     const { left, right } = expression;
-    if (left.name === name) {
-      value = right.value || right.name;
-    }
-    return value;
+    if (left.name !== name) return;
+    // the right node could be a literal or an identifier
+    return right.value || right.name;
   }
 
   #generateOutputCode() {
