@@ -264,14 +264,8 @@ export default class Deobfuscator {
     if (!t.isLiteral(binding.path.node.init)) return;
     const { name } = binding.path.node.id;
     let { value } = binding.path.node.init;
-    let switchBlocks = [];
+    const switchBlocks = this.#buildSwitchBlocks(switchStatement);
     let stuffInOrder = [];
-    for (const switchCase of switchStatement.cases) {
-      // the test could be a literal or an identifier
-      const key = switchCase.test.value || switchCase.test.name;
-      switchBlocks[key] = switchCase.consequent;
-    }
-    // TODO this loop should be reafactored
     for (let i = 0; i < Object.keys(switchBlocks).length; i++) {
       let blocksByCase = switchBlocks[value];
       if (!blocksByCase) return;
@@ -288,6 +282,15 @@ export default class Deobfuscator {
     }
     path.replaceWithMultiple(stuffInOrder);
     this.#changed = true;
+  }
+
+  #buildSwitchBlocks(switchStatement) {
+    let switchBlocks = {};
+    for (const switchCase of switchStatement.cases) {
+      const key = switchCase.test.value || switchCase.test.name;
+      switchBlocks[key] = switchCase.consequent;
+    }
+    return switchBlocks;
   }
 
   #getNextValue(statement, name) {
