@@ -24,7 +24,10 @@
   "homepage": "https://github.com/lorenzoferre/deobfuscator#readme",
   "type": "module",
   "devDependencies": {
-    "@babel/core": "^7.22.5",
+    "@babel/parser": "^7.23.0",
     "@babel/types": "^7.22.5"
+  },
+  "dependencies": {
+    "@babel/traverse": "^7.23.0"
   }
 }
