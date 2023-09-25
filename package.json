@@ -1,10 +1,10 @@
 {
   "name": "deobfuscator",
   "version": "1.0.0",
-  "description": "deobfuscate javascript code with the abstact syntax trees",
+  "description": "Automation of the javascript deobfuscation process using abstract syntaxt trees",
   "main": "main.js",
   "scripts": {
-    "test": "node --experimental-test-coverage --test ./test"
+    "test": "node --test ./test"
   },
   "repository": {
     "type": "git",
