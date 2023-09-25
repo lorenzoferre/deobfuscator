@@ -1,7 +1,7 @@
-import Deobfuscator from "./deobfuscator.js"
-const code =
-`
-console.log(+([[[[[[]], , ,]]]] != 0));
+import Deobfuscator from "./deobfuscator.js";
+
+const code = `
+console.log(parseInt("41"));
 `;
 
 const deobfuscator = new Deobfuscator(code);

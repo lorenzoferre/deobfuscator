@@ -1,10 +1,10 @@
 {
   "name": "deobfuscator",
   "version": "1.0.0",
-  "description": "deobfuscate javascript code with the abstact syntax trees",
+  "description": "Automation of the javascript deobfuscation process using abstract syntaxt trees",
   "main": "main.js",
   "scripts": {
-    "test": "node --experimental-test-coverage --test ./test"
+    "test": "node --test ./test"
   },
   "repository": {
     "type": "git",
@@ -24,7 +24,10 @@
   "homepage": "https://github.com/lorenzoferre/deobfuscator#readme",
   "type": "module",
   "devDependencies": {
-    "@babel/core": "^7.22.5",
+    "@babel/parser": "^7.23.0",
     "@babel/types": "^7.22.5"
+  },
+  "dependencies": {
+    "@babel/traverse": "^7.23.0"
   }
 }
