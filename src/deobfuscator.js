@@ -1,4 +1,6 @@
-import babel from "@babel/core";
+import * as parser from "@babel/parser";
+import _traverse from "@babel/traverse";
+const traverse = _traverse.default;
 import * as t from "@babel/types";
 import _generate from "@babel/generator";
 const generate = _generate.default;
@@ -8,7 +10,7 @@ export default class Deobfuscator {
   #changed;
 
   constructor(obfuscatedCode) {
-    this.#ast = babel.parse(obfuscatedCode);
+    this.#ast = parser.parse(obfuscatedCode);
   }
 
   deobfuscate() {
@@ -16,7 +18,7 @@ export default class Deobfuscator {
       this.#changed = false;
       this.#removeDeadCode();
       this.#traverseForDeobfuscating();
-      this.#ast = babel.parse(generate(this.#ast, { comments: false }).code);
+      this.#ast = parser.parse(generate(this.#ast, { comments: false }).code);
     } while (this.#changed);
 
     return this.#generateOutputCode();
@@ -27,7 +29,7 @@ export default class Deobfuscator {
     do {
       removed = false;
       removed = this.#traverseForRemovingDeadCode(removed);
-      this.#ast = babel.parse(generate(this.#ast, { comments: false }).code);
+      this.#ast = parser.parse(generate(this.#ast, { comments: false }).code);
     } while (removed);
   }
 
@@ -43,7 +45,7 @@ export default class Deobfuscator {
         }
       },
     };
-    babel.traverse(this.#ast, removeDeadCodeVisitor);
+    traverse(this.#ast, removeDeadCodeVisitor);
     return removed;
   }
 
@@ -88,7 +90,7 @@ export default class Deobfuscator {
         path.remove();
       },
     };
-    babel.traverse(this.#ast, deobfuscateVisitor);
+    traverse(this.#ast, deobfuscateVisitor);
   }
 
   #renameVariableSameScope(path) {
