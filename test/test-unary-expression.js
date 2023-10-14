@@ -1,25 +1,25 @@
 import { test, describe } from "node:test";
-import assert from 'node:assert/strict';
+import assert from "node:assert/strict";
 
-import Deobfuscator from "../src/deobfuscator.js";
+import deobfuscate from "../src/deobfuscator.js";
 
 describe("unary expressions", () => {
-    test("typeof", () => {
-        assert.strictEqual(new Deobfuscator(`typeof "hi";`).deobfuscate(), `"string";`)
-    });
-    test("+", () => {
-        assert.strictEqual(new Deobfuscator(`+"1";`).deobfuscate(), `1;`)
-    });
+  test("typeof", () => {
+    assert.strictEqual(deobfuscate(`typeof "hi";`), `"string";`);
+  });
+  test("+", () => {
+    assert.strictEqual(deobfuscate(`+"1";`), `1;`);
+  });
 
-    test("-", (t) => {
-        assert.strictEqual(new Deobfuscator(`-"1"`).deobfuscate(),`-1;`)
-    });
+  test("-", () => {
+    assert.strictEqual(deobfuscate(`-"1"`), `-1;`);
+  });
 
-    test("!", (t) => {
-        assert.strictEqual(new Deobfuscator(`!true;`).deobfuscate(),`false;`)
-    });
+  test("!", () => {
+    assert.strictEqual(deobfuscate(`!true;`), `false;`);
+  });
 
-    test("~", (t) => {
-        assert.strictEqual(new Deobfuscator(`~1;`).deobfuscate(),`-2;`)
-    });
+  test("~", () => {
+    assert.strictEqual(deobfuscate(`~1;`), `-2;`);
+  });
 });
