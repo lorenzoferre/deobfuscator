@@ -1,8 +1,8 @@
 {
   "name": "@lorenzoferre/deobfuscator",
-  "version": "1.0.0",
+  "version": "1.0.0-beta",
   "description": "Automation of the javascript deobfuscation process using abstract syntaxt trees",
-  "main": "main.js",
+  "main": "src/deobfuscator.js",
   "scripts": {
     "test": "node --test ./test"
   },
@@ -27,8 +27,5 @@
     "@babel/core": "^7.23.0",
     "@babel/parser": "^7.23.0",
     "@babel/types": "^7.22.5"
-  },
-  "dependencies": {
-    "@babel/traverse": "^7.23.0"
   }
 }
