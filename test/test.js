@@ -18,7 +18,7 @@ test("remove empty statement", () => {
 
 test("untangling scope confusion", () => {
   assert.strictEqual(
-    deobfuscate(`let x = 0; { let _x = 30;_x += 1; }x += 1;`).split("\n").join(" "),
+    deobfuscate(`let x = 0; { let x = 30;x += 1; }x += 1;`).split("\n").join(" "),
     `let x = 0; {   let _x = 30;   _x += 1; } x += 1;`
   );
 });
