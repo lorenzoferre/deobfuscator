@@ -8,6 +8,7 @@ import replaceSingleConstantViolation from "./techniques/replace-single-constant
 import moveDeclarationBeforeLoop from "./techniques/move-declaration-before-loop.js";
 import replaceOutermostIife from "./techniques/replace-outermost-iife.js";
 import defeatingArrayMapping from "./techniques/defeating-array-mapping.js";
+import defeatingObjectMapping from "./techniques/defeating-object-mapping.js";
 import transformBracketToDot from "./techniques/transform-bracket-to-dot.js";
 import replaceNullToUndefined from "./techniques/replace-null-to-undefined.js";
 import evaluateConditionStatement from "./techniques/evaluate-condition-statement.js";
@@ -27,6 +28,7 @@ export default function deobfuscate(code) {
         moveDeclarationBeforeLoop,
         replaceOutermostIife,
         defeatingArrayMapping,
+        defeatingObjectMapping,
         transformBracketToDot,
         replaceNullToUndefined,
         evaluateConditionStatement,
