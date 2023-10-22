@@ -13,7 +13,7 @@ test("hex to value", () => {
 
 test("bracket to dot", () => {
   assert.strictEqual(deobfuscate(`console["log"]("a")`), `console.log("a");`);
-  assert.strictEqual(deobfuscate(`console.log(o["a"]);`), `console.log(o["a"]);`);
+  assert.strictEqual(deobfuscate(`console.log(o["a"]);`), `console.log(o.a);`);
 });
 
 test("remove empty statement", () => {

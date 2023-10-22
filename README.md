@@ -27,21 +27,20 @@ console.log(deobfuscatedCode.code)
  
 # Techniques
 ### Remove dead code
-It removes parts of the code that are useless.
-These could be variables or functions, an example:
+It removes parts of the code that are deemed unecessary, such as variables or functions, an example:
 ```javascript
 function a() {} 
 function b() {a();} 
 function c() {a(); b();} 
 console.log("a");
 ```
-Result:
+The result:
 ```javascript
 console.log("a");
 ```
- _a_ function is called by _b_ and _c_, _b_ is called by _c_, but _c_ is not called by anyone, so none of these functions are called.
+ _a_ function is called by both _b_ and _c_, _b_ is called by _c_, but _c_ is not called by anyone, so none of these functions are actually called.
 ### Rename variables in the same scope
-It aims to make the code more readble, an example:
+It aims to make the code more readable, an example:
 ```javascript
 let x = 0; 
 { 
@@ -50,7 +49,7 @@ let x = 0;
 }
 x += 1;
 ```
-Result:
+The result:
 ```javascript
 let x = 0; 
 { 
@@ -59,53 +58,52 @@ let x = 0;
 }
 x += 1;
 ```
-Only the variabile _x_ changes within the block statement to avoid misunderstanding with the global variable _x_.
+Only the variabile _x_ changes within the block statement to avoid any confusion with the global variable _x_.
 ### Constant propagation
 It propagates constant values across all occurrences, an example:
 ```javascript
 var a = 1;
 console.log(a)
 ```
-Result:
+The result:
 ```javascript
 console.log(1)
 ```
-Once the value is propagated, this technique deletes the variable declaration.
+After propagating the value, this technique removes the variable declaration.
 A counterexample:
 ```javascript
 var a = 1;
 a += 1;
 console.log(a)
 ```
-Every time there is at least one update or assignment expression the variable is no longer constant, so we can't propagate the value.
+Whenever there is an update or assignment expression, the variable is no longer considered constant, and, as a result, we cannot propagate the value.
 ### Evaluation
-It evaluates all expressions that contain only constant values, an example:
+It evaluates expressions that consist solely of constant values, an example:
 ```javascript
 console.log(1 + 1);
 console.log("hello".replace("h","H"));
 console.log(parseInt("1"));
 ```
-Result:
+The result:
 ```javascript
 console.log(2);
 console.log("Hello";
 console.log(1);
 ```
 ### Replace single constant violations
-It replaces all assignments, which are single constant violations, with variable declarations.
-As I said before every time thare is at least one assignment the variable is no longer constant, so with this technique it is possible to make a constant variable declaration.
+It replaces all assignments that violate the constant property with variable declarations. As mentioned earlier, whenever there is at least one assignment, the variable can no longer be considered constant. Therefore, this technique allows for the creation of constant variable declarations.
 An example:
 ```javascript
 var a;
 a = 1;
 ```
-Result:
+The result:
 ```javascript
 
 var a = 1;
 ```
 ### Replace outermost iife
-It extracts the body of the outermost iife and replace all with this one,
+It extracts the body of the outermost IIFE and replaces it with this one,
 an example:
 ```javascript
 (function () { console.log(5);})();
@@ -114,61 +112,66 @@ Or
 ```javascript
 (() => { console.log(5);})();
 ```
-Result in both cases is the same:
+The result is the same in both cases:
 ```javascript
 console.log(5);
 ```
-But if there is a return into the iife, it remeins unchanged.
+But if there is a return statement inside the IIFE, it remains unchanged.
 ### Defeating array mapping
-It replaces member expressions that access the elements of an array with its value.
-The value inside the array must be a node of type literal though.
-An example:
+It replaces member expressions that access array elements with their corresponding values. However, the value inside the array must be a node of the literal type. Here's an example.
 ```javascript
-var _0x3baf=["Hello Venus","log","Hello Earth","Hello Mars"];
-console[_0x3baf[1]](_0x3baf[0]);
-console[_0x3baf[1]](_0x3baf[2]);
-console[_0x3baf[1]](_0x3baf[3]);
+var _0xa=["feel","log","free","to contribute"];
+console[_0xa[1]](_0xa[0]);
+console[_0xa[1]](_0xa[2]);
+console[_0xa[1]](_0xa[3]);
 ```
-Result:
+The result:
 ```javascript
-console.log("Hello Venus");console.log("Hello Earth");console.log("Hello Mars");
+console.log("feel");
+console.log("free");
+console.log("to contribute");
 ```
+### Defeating object mapping
+It's similar to defeating array mapping, but it applies to objects, an example:
+```javascript
+var obj = {"a": 1};
+console.log(obj.a);
+```
+The result:
+```javascript
+console.log(1);
+```
+
 ### Transform brackets notation into dots notation
-It transforms the brackets notation into dots notation, an example:
+It converts bracket notation into dot notation. Here's an example:
 ```javascript
 console.log("hello"["replace"]("h","H"));
 ```
-Result:
+The result:
 ```javascript
 console.log("hello".replace("h","H"));
 ```
-This transformation does not occur when accessing the attributes of an object or array element, an example:
-```javascript
-var obj = {"a":1, "b":2};
-console.log(obj["a"]);
-```
-In this case it is not transformed into _obj.a_
+
 ### Replace null values with undefined
-It replaces null values with undefined to be evaluated later, an example:
+It replaces null values with undefined for later evaluation, an example:
 ```javascript
 console.log(+([[[[[[]], , ,]]]] != 0));
 ```
-Result:
+The result:
 ```javascript
 console.log(+([[[[[[]],undefined,undefined,]]]] != 0));
 ```
-The evaluation of the last piece of code:
+The evaluation of the last piece of code is as follows:
 ```javascript
 console.log(1);
 ```
 ### Evaluate conditional statements
-It checks wheater the test value of if or ternary operators is always true or false.
-In the first case it replaces the entire if statement with the true branch, in the second with the false branch.
+It checks whether the test value of if or ternary operators is always true or false. In the first case it replaces the entire if statement with the true branch, and in the second case, it replaces it with the false branch.
 An example:
 ```javascript
 if (1 == 1) { console.log("1 == 1"); }
 ```
-Result:
+The result:
 ```javascript
 console.log("1 == 1");
 ```
@@ -176,17 +179,14 @@ Another example:
 ```javascript
 if (1 != 1) { console.log("1 == 1"); } else {}
 ```
-Result:
+The result:
 ```javascript
 
 ```
 ### Control flow unflattening
-It reconstructs the normal flow of the code.
-In special cases it must embed the assignments in the variable declarations (as in the case of the single constant violation) and then move them before loops.
-In this way variables can be propagated if they are declared with a literal type node.
+It reconstructs the regular flow of the code. In special cases it may need to incorporate assignments into variable declarations, such as in the case of a single constant violation, and then move them before loops. This enables the propagation of variables when they are declared with a literal type node.
 ##### Move declarations before loops
-If you declare variables inside loops they are not constant.
-In fact this technique moves declarations before loops, an example:
+If you declare variables inside loops, they are not considered constant. In fact, this technique relocates declarations before loops. Here's an example:
 ```javascript
 var a = 1;
 var b,c;
@@ -199,7 +199,7 @@ case 3: { b = 10; a = 2; } break;
 }while(c != 20);
 console.log(c);
 ```
-Result:
+The result:
 ```javascript
 var c = a * b;
 var b = 10;
@@ -222,28 +222,26 @@ do {
 } while (c != 20);
 console.log(c);
 ```
-#### Main technique
-This technique verifies that the switch test variable identifier refers to a variable declared with a literal type node.
-So by finding this value you can understand which case is accessed first.
-Once the first one has been understood, the identifier of the test variable is searched to obtain the next value and consequently access to the next switch case and so on.
+#### Control flow unflattening
+This technique checks whether the switch test variable identifier is associated with a variable declared using a literal type node. By identifying this value, you can determine which case is accessed first. Once the first one is determined, the test variable's identifier is searched to obtain the next value, allowing access to the next switch case and so on.
 ### Remove empty statements
 It removes empty elements, an example:
 ```javascript
 ;;;console.log(1);;;
 ```
-Result:
+The result:
 ```javascript
 console.log(1);
 ```
 # To do
-I would like to get the results returned by functions:
+I would like to retrieve the results returned by functions, as follows:
 ```javascript
 function add(a, b) {
     return a + b;
 }
 console.log(add(1,1));
 ```
-Exprected result:
+The expected result:
 ```javascript
 console.log(2);
 ```
@@ -253,17 +251,16 @@ var a = 1;
 a += 1;
 console.log(a);
 ```
-Expected result:
+The expected result:
 ```javascript
 console.log(2);
 ```
-Evaluate a special case of Jsfuck notation like this:
+Evaluate a special case of Jsfuck notation like the following:
 ```javascript
 console.log(([]["flat"] +[])[1]);
 ```
-Expected result:
+The expected result:
 ```javascript
 console.log("u");
 ```
-Feel free to contribute, I would really appreciate it.
-My goal is to build a deobfuscator that is as general as possible, in fact when I learn to use the _vm_ module the part of the code that deals with control flow unflattening will have to be rewritten.
+Feel free to contribute; I would greatly appreciate it. My goal is to create a deobfuscator that is as versatile as possible. In fact, when I learn to use the _vm_ module, the part of the code responsible for control flow unflattening will need to be rewritten.

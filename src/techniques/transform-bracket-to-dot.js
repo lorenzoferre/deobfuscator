@@ -6,12 +6,13 @@ export default function (babel) {
   return {
     name: "transform-bracket-to-dot",
     visitor: {
-      CallExpression(path) {
+      MemberExpression(path) {
         const { node } = path;
-        let { property } = node.callee;
+        let { property } = node;
+        if (!property) return;
         if (t.isStringLiteral(property)) {
-          node.callee.property = t.identifier(property.value);
-          node.callee.computed = false;
+          node.property = t.identifier(property.value);
+          node.computed = false;
           setChanged(true);
         }
       },
