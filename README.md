@@ -142,7 +142,7 @@ The result:
 console.log(1);
 ```
 
-### Transform brackets notation into dots notation
+### Transform bracket into dot notation
 It converts bracket notation into dot notation. Here's an example:
 ```javascript
 console.log("hello"["replace"]("h","H"));
