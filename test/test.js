@@ -3,6 +3,10 @@ import assert from "node:assert/strict";
 
 import deobfuscate from "../src/deobfuscator.js";
 
+function removeNewLinesAndTabs(pieceOfCode) {
+  return pieceOfCode.split("\n").join(" ").split("  ").join("");
+}
+
 test("hex to value", () => {
   assert.strictEqual(deobfuscate(`console.log("\x61\x61\x61")`), `console.log("aaa");`);
 });
@@ -86,6 +90,23 @@ test("defeating array mapping", () => {
       .join(""),
     `console.log("Hello Venus");console.log("Hello Earth");console.log("Hello Mars");`
   );
+});
+
+describe("defeating object mapping", () => {
+  test("defeating object mapping with literals", () => {
+    assert.strictEqual(
+      deobfuscate(`var obj = {"a": 1}; console.log(obj.a)`),
+      `console.log(1);`
+    );
+  });
+  test("defeating object mapping with no literals", () => {
+    assert.equal(
+      removeNewLinesAndTabs(
+        deobfuscate(`var obj = {"a": Math.random()}; console.log(obj.a)`)
+      ),
+      `var obj = { "a": Math.random() }; console.log(obj.a);`
+    );
+  });
 });
 
 describe("constant folding", () => {
