@@ -22,8 +22,16 @@ test("remove empty statement", () => {
 
 test("untangling scope confusion", () => {
   assert.strictEqual(
-    deobfuscate(`let x = 0; { let x = 30;x += 1; }x += 1;`).split("\n").join(" "),
-    `let x = 0; {   let _x = 30;   _x += 1; } x += 1;`
+    removeNewLinesAndTabs(
+      deobfuscate(`
+        let x = 0; 
+        { 
+          let x = 30;
+          x += 1;
+        }
+        x += 1;`)
+    ),
+    `let x = 0; { let _x = 30; _x += 1; } x += 1;`
   );
 });
 
@@ -67,7 +75,12 @@ describe("reachability of function", () => {
   test("unreachable function", () => {
     assert.strictEqual(
       deobfuscate(
-        `function a() {} function b() {a();} function c() {a(); b();} console.log("a");`
+        `
+        function a() {}
+        function b() { a(); } 
+        function c() { a(); b(); } 
+        console.log("a");
+        `
       ),
       `console.log("a");`
     );
@@ -75,27 +88,32 @@ describe("reachability of function", () => {
 
   test("reachable function", () => {
     assert.strictEqual(
-      deobfuscate(`function a() {} console.log(a());`).split("\n").join(""),
-      `function a() {}console.log(a());`
+      removeNewLinesAndTabs(deobfuscate(`function a() {} console.log(a());`)),
+      `function a() {} console.log(a());`
     );
   });
 });
 
 test("defeating array mapping", () => {
   assert.strictEqual(
-    deobfuscate(
-      `var _0x3baf=["Hello Venus","log","Hello Earth","Hello Mars"];console[_0x3baf[1]](_0x3baf[0]);console[_0x3baf[1]](_0x3baf[2]);console[_0x3baf[1]](_0x3baf[3])`
-    )
-      .split("\n")
-      .join(""),
-    `console.log("Hello Venus");console.log("Hello Earth");console.log("Hello Mars");`
+    removeNewLinesAndTabs(
+      deobfuscate(
+        `
+        var _0xa=["feel","log","free","to contribute"];
+        console[_0xa[1]](_0xa[0]);
+        console[_0xa[1]](_0xa[2]);
+        console[_0xa[1]](_0xa[3])
+        `
+      )
+    ),
+    `console.log("feel"); console.log("free"); console.log("to contribute");`
   );
 });
 
 describe("defeating object mapping", () => {
   test("defeating object mapping with literals", () => {
     assert.strictEqual(
-      deobfuscate(`var obj = {"a": 1}; console.log(obj.a)`),
+      deobfuscate(`var obj = { "a": 1 }; console.log(obj.a)`),
       `console.log(1);`
     );
   });
@@ -115,8 +133,8 @@ describe("constant folding", () => {
   });
   test("non constant value", () => {
     assert.strictEqual(
-      deobfuscate(`var a = 5; a+=1; console.log(a);`).split("\n").join(""),
-      `var a = 5;a += 1;console.log(a);`
+      removeNewLinesAndTabs(deobfuscate(`var a = 5; a += 1; console.log(a);`)),
+      `var a = 5; a += 1; console.log(a);`
     );
   });
 });
@@ -124,12 +142,12 @@ describe("constant folding", () => {
 describe("iife function", () => {
   test("iife function expression", () => {
     assert.strictEqual(
-      deobfuscate(`(function () { console.log(5);})();`),
+      deobfuscate(`(function () { console.log(5); })();`),
       `console.log(5);`
     );
   });
   test("iife arrow function expression", () => {
-    assert.strictEqual(deobfuscate(`(() => { console.log(5);})();`), `console.log(5);`);
+    assert.strictEqual(deobfuscate(`(() => { console.log(5); })();`), `console.log(5);`);
   });
 });
 
