@@ -14,6 +14,7 @@ import replaceNullToUndefined from "./techniques/replace-null-to-undefined.js";
 import evaluateConditionStatement from "./techniques/evaluate-condition-statement.js";
 import controlFlowUnflattening from "./techniques/control-flow-unflattening.js";
 import removeEmptyStatement from "./techniques/remove-empty-statement.js";
+import evaluateFunction from "./techniques/evaluate-function.js";
 
 export default function deobfuscate(code) {
   do {
@@ -34,6 +35,7 @@ export default function deobfuscate(code) {
         evaluateConditionStatement,
         controlFlowUnflattening,
         removeEmptyStatement,
+        evaluateFunction,
       ],
       comments: false,
       compact: false,
