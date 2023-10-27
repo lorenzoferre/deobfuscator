@@ -7,6 +7,17 @@ function removeNewLinesAndTabs(pieceOfCode) {
   return pieceOfCode.split("\n").join(" ").split("  ").join("");
 }
 
+test("reconstruct variable declarations", () => {
+  assert.strictEqual(
+    removeNewLinesAndTabs(
+      deobfuscate(`
+        var a,b,c;
+        console.log(a,b,c);`)
+    ),
+    `var a; var b; var c; console.log(a, b, c);`
+  );
+});
+
 test("hex to value", () => {
   assert.strictEqual(deobfuscate(`console.log("\x61\x61\x61")`), `console.log("aaa");`);
 });
