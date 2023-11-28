@@ -21,9 +21,12 @@ export default function (babel) {
       CallExpression(path) {
         const { node } = path;
         const { callee } = node;
-        if (callee.name === functionName) {
-          const expressionCode = generate(node).code;
-          const value = vm.runInContext(expressionCode, context);
+        if (callee.name !== functionName) return;
+        const args = node.arguments;
+        if (!args.every(arg => t.isLiteral(arg))) return;
+        const expressionCode = generate(node).code;
+        const value = vm.runInContext(expressionCode, context);
+        if (value) {
           path.replaceWith(t.valueToNode(value));
           setChanged(true);
         }
