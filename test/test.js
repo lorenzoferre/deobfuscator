@@ -19,6 +19,14 @@ test("transform function expressions into function declarations", () => {
       `)
     ),
     `function sum(a, b) { return a + b; } console.log(sum(2, 4));`
+test("reconstruct variable declarations", () => {
+  assert.strictEqual(
+    removeNewLinesAndTabs(
+      deobfuscate(`
+        var a,b,c;
+        console.log(a,b,c);`)
+    ),
+    `var a; var b; var c; console.log(a, b, c);`
   );
 });
 
