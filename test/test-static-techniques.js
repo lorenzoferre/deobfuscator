@@ -42,6 +42,21 @@ test("bracket to dot", () => {
   assert.strictEqual(deobfuscate(`console["log"]("a")`), `console.log("a");`);
 });
 
+test("transform sequence expression", () => {
+  assert.strictEqual(
+    removeNewLinesAndTabs(
+      deobfuscate(
+        `
+        var a = 1;
+        var b = 1;
+        a = 2, b = 2;
+        `
+      )
+    ),
+    `var a = 1; var b = 1; a = 2; b = 2;`
+  );
+});
+
 test("remove empty statement", () => {
   assert.strictEqual(deobfuscate(`;;;console.log("a");;;`), `console.log("a");`);
 });
