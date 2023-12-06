@@ -19,6 +19,9 @@ test("transform function expressions into function declarations", () => {
       `)
     ),
     `function sum(a, b) { return a + b; } console.log(sum(2, 4));`
+  );
+});
+
 test("reconstruct variable declarations", () => {
   assert.strictEqual(
     removeNewLinesAndTabs(
