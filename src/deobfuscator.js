@@ -2,6 +2,7 @@ import { transform } from "@babel/core";
 import { changed, setChanged } from "./utils/util.js";
 import removeDeadCode from "./techniques/remove-dead-code.js";
 import renameVariableSameScope from "./techniques/rename-variable-same-scope.js";
+import reconstructVariableDeclaration from "./techniques/reconstruct-variable-declaration.js";
 import constantPropagation from "./techniques/constant-propagation.js";
 import evaluate from "./techniques/evaluate.js";
 import replaceSingleConstantViolation from "./techniques/replace-single-constant-violation.js";
@@ -22,6 +23,7 @@ export default function deobfuscate(code) {
       plugins: [
         removeDeadCode,
         renameVariableSameScope,
+        reconstructVariableDeclaration,
         constantPropagation,
         evaluate,
         replaceSingleConstantViolation,
