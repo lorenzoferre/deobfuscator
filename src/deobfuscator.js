@@ -12,6 +12,7 @@ import replaceOutermostIife from "./techniques/statics/replace-outermost-iife.js
 import defeatingArrayMapping from "./techniques/statics/defeating-array-mapping.js";
 import defeatingObjectMapping from "./techniques/statics/defeating-object-mapping.js";
 import transformBracketToDot from "./techniques/statics/transform-bracket-to-dot.js";
+import transformSequenceExpression from "./techniques/statics/transform-sequence-expression.js";
 import replaceNullToUndefined from "./techniques/statics/replace-null-to-undefined.js";
 import evaluateConditionStatement from "./techniques/statics/evaluate-condition-statement.js";
 import controlFlowUnflattening from "./techniques/statics/control-flow-unflattening.js";
@@ -35,6 +36,7 @@ export default function deobfuscate(code, dynamic = false) {
         defeatingArrayMapping,
         defeatingObjectMapping,
         transformBracketToDot,
+        transformSequenceExpression,
         replaceNullToUndefined,
         evaluateConditionStatement,
         controlFlowUnflattening,
