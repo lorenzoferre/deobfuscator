@@ -1,4 +1,4 @@
-import { setChanged } from "../utils/util.js";
+import { setChanged } from "../../utils/util.js";
 
 function replaceWithBody(path, branch, t) {
   if (t.isBlockStatement(branch)) {

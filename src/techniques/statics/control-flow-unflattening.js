@@ -1,4 +1,4 @@
-import { setChanged } from "../utils/util.js";
+import { setChanged } from "../../utils/util.js";
 
 function buildSwitchBlocks(switchStatement) {
   let switchBlocks = {};

@@ -3,20 +3,21 @@ import assert from "node:assert/strict";
 
 import deobfuscate from "../src/deobfuscator.js";
 
-function removeNewLinesAndTabs(pieceOfCode) {
-  return pieceOfCode.split("\n").join(" ").split("  ").join("");
-}
+import { removeNewLinesAndTabs } from "../src/utils/util.js";
 
 test("transform function expressions into function declarations", () => {
   assert.strictEqual(
     removeNewLinesAndTabs(
-      deobfuscate(`
+      deobfuscate(
+        `
         var sum = function(a, b) {
           return a + b;
         }
         var a = 2;
         console.log(sum(a, 2*a));
-      `)
+      `,
+        false
+      )
     ),
     `function sum(a, b) { return a + b; } console.log(sum(2, 4));`
   );
