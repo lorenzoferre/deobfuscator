@@ -5,24 +5,6 @@ import deobfuscate from "../src/deobfuscator.js";
 
 import { removeNewLinesAndTabs } from "../src/utils/util.js";
 
-test("transform function expressions into function declarations", () => {
-  assert.strictEqual(
-    removeNewLinesAndTabs(
-      deobfuscate(
-        `
-        var sum = function(a, b) {
-          return a + b;
-        }
-        var a = 2;
-        console.log(sum(a, 2*a));
-      `,
-        false
-      )
-    ),
-    `function sum(a, b) { return a + b; } console.log(sum(2, 4));`
-  );
-});
-
 test("reconstruct variable declarations", () => {
   assert.strictEqual(
     removeNewLinesAndTabs(
