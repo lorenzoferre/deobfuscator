@@ -17,6 +17,7 @@ import evaluateConditionStatement from "./techniques/statics/evaluate-condition-
 import controlFlowUnflattening from "./techniques/statics/control-flow-unflattening.js";
 import removeEmptyStatement from "./techniques/statics/remove-empty-statement.js";
 import evaluateFunction from "./techniques/dynamics/evaluate-function.js";
+import evaluateUpdateExpression from "./techniques/dynamics/evaluate-update-expression.js";
 
 export default function deobfuscate(code, dynamic = false) {
   do {
@@ -40,6 +41,7 @@ export default function deobfuscate(code, dynamic = false) {
         controlFlowUnflattening,
         removeEmptyStatement,
         dynamic ? evaluateFunction : null,
+        dynamic ? evaluateUpdateExpression : null,
       ].filter(Boolean),
       comments: false,
       compact: false,
