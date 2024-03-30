@@ -14,18 +14,20 @@ export default function (babel) {
   return {
     name: "evaluate-condition-statement",
     visitor: {
-      "IfStatement|ConditionalExpression"(path) {
-        const isTruthy = path.get("test").evaluateTruthy();
-        const { consequent, alternate } = path.node;
-        if (isTruthy === undefined) return;
-        if (isTruthy) {
-          replaceWithBody(path, consequent, t);
-        } else if (alternate != null) {
-          replaceWithBody(path, alternate, t);
-        } else {
-          path.remove();
-        }
-        setChanged(true);
+      "IfStatement|ConditionalExpression": {
+        exit(path) {
+          const isTruthy = path.get("test").evaluateTruthy();
+          const { consequent, alternate } = path.node;
+          if (isTruthy === undefined) return;
+          if (isTruthy) {
+            replaceWithBody(path, consequent, t);
+          } else if (alternate != null) {
+            replaceWithBody(path, alternate, t);
+          } else {
+            path.remove();
+          }
+          setChanged(true);
+        },
       },
     },
   };

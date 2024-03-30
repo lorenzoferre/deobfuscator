@@ -6,13 +6,15 @@ export default function (babel) {
   return {
     name: "change-null-to-undefined",
     visitor: {
-      ArrayExpression(path) {
-        for (const element of path.get("elements")) {
-          if (!element.node) {
-            element.replaceWith(t.valueToNode(undefined));
-            setChanged(true);
+      ArrayExpression: {
+        enter(path) {
+          for (const element of path.get("elements")) {
+            if (!element.node) {
+              element.replaceWith(t.valueToNode(undefined));
+              setChanged(true);
+            }
           }
-        }
+        },
       },
     },
   };

@@ -6,17 +6,19 @@ export default function (babel) {
   return {
     name: "reconstruct-variable-declaration",
     visitor: {
-      VariableDeclaration(path) {
-        const { node } = path;
-        const { kind } = node;
-        let { declarations } = node;
-        if (declarations.length === 1) return;
-        declarations.reverse();
-        for (const declaration of declarations) {
-          path.insertAfter(t.variableDeclaration(kind, [declaration]));
-        }
-        path.remove();
-        setChanged(true);
+      VariableDeclaration: {
+        enter(path) {
+          const { node } = path;
+          const { kind } = node;
+          let { declarations } = node;
+          if (declarations.length === 1) return;
+          declarations.reverse();
+          for (const declaration of declarations) {
+            path.insertAfter(t.variableDeclaration(kind, [declaration]));
+          }
+          path.remove();
+          setChanged(true);
+        },
       },
     },
   };
