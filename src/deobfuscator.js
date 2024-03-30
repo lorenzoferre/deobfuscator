@@ -2,7 +2,6 @@ import { transform } from "@babel/core";
 import { changed, setChanged } from "./utils/util.js";
 import removeDeadCode from "./techniques/statics/remove-dead-code.js";
 import renameVariableSameScope from "./techniques/statics/rename-variable-same-scope.js";
-import replaceFunctionExpressionWithFunctionDeclaration from "./techniques/statics/replace-function-expression-with-function-declaration.js";
 import reconstructVariableDeclaration from "./techniques/statics/reconstruct-variable-declaration.js";
 import constantPropagation from "./techniques/statics/constant-propagation.js";
 import evaluate from "./techniques/statics/evaluate.js";
@@ -26,7 +25,6 @@ export default function deobfuscate(code, dynamic = false) {
       plugins: [
         removeDeadCode,
         renameVariableSameScope,
-        replaceFunctionExpressionWithFunctionDeclaration,
         reconstructVariableDeclaration,
         constantPropagation,
         evaluate,

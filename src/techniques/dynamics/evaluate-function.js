@@ -3,29 +3,36 @@ import _generate from "@babel/generator";
 const generate = _generate.default;
 import vm from "vm";
 
-const context = vm.createContext();
-var functionName;
-
 export default function (babel) {
   const { types: t } = babel;
+  const context = vm.createContext();
 
   return {
     name: "evaluate-function",
     visitor: {
-      FunctionDeclaration(path) {
-        const { node } = path;
-        functionName = node.id.name;
-        const func = generate(node).code;
-        vm.runInContext(func, context);
+      FunctionDeclaration: {
+        enter(path) {
+          const { node } = path;
+          const func = generate(node).code;
+          vm.runInContext(func, context);
+        },
+      },
+      VariableDeclarator: {
+        enter(path) {
+          const { node } = path;
+          const { init } = node;
+          if (t.isArrowFunctionExpression(init)) {
+            vm.runInContext(generate(node).code, context);
+          }
+        },
       },
       CallExpression(path) {
         const { node } = path;
         const { callee } = node;
-        if (callee.name !== functionName) return;
+        if (!context.hasOwnProperty(callee.name)) return;
         const args = node.arguments;
         if (!args.every(arg => t.isLiteral(arg))) return;
-        const expressionCode = generate(node).code;
-        const value = vm.runInContext(expressionCode, context);
+        const value = vm.runInContext(generate(node).code, context);
         if (value) {
           path.replaceWith(t.valueToNode(value));
           setChanged(true);
