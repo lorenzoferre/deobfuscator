@@ -12,3 +12,7 @@ export function hasSingleConstantViolation(binding, expression, t) {
   if (expression !== binding.constantViolations[0].node) return;
   return true;
 }
+
+export function removeNewLinesAndTabs(pieceOfCode) {
+  return pieceOfCode.split("\n").join(" ").split("  ").join("");
+}

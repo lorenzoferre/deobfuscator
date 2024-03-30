@@ -5,24 +5,24 @@
 # Usage
 First of all you need to install the package:
 ```
-npm i @lorenzoferre/deobfuscator
+npm i javascript-deob
 ```
 Then you import the deobfuscation function into your module which takes the obfuscated code as input:
 ```javascript
-import deobfuscate from "@lorenzoferre/deobfuscator";
+import deobfuscate from "javascript-deob";
 const code = `` // Insert the code here
 const deobfuscatedCode = deobfuscate(code)
-console.log(deobfuscatedCode.code)
+console.log(deobfuscatedCode)
 ```
 Or if you want to use a file:
 ```javascript
-import deobfuscate from "@lorenzoferre/deobfuscator";
+import deobfuscate from "javascript-deob";
 import fs from "fs";
 
 const path = ""; // Insert the file path
 const code = fs.readFileSync(path, "utf-8");
 const deobfuscatedCode = deobfuscate(code)
-console.log(deobfuscatedCode.code)
+console.log(deobfuscatedCode)
 ```
  
 # Techniques

@@ -1,28 +1,31 @@
 import { transform } from "@babel/core";
 import { changed, setChanged } from "./utils/util.js";
-import removeDeadCode from "./techniques/remove-dead-code.js";
-import renameVariableSameScope from "./techniques/rename-variable-same-scope.js";
-import constantPropagation from "./techniques/constant-propagation.js";
-import evaluate from "./techniques/evaluate.js";
-import replaceSingleConstantViolation from "./techniques/replace-single-constant-violation.js";
-import moveDeclarationBeforeLoop from "./techniques/move-declaration-before-loop.js";
-import replaceOutermostIife from "./techniques/replace-outermost-iife.js";
-import defeatingArrayMapping from "./techniques/defeating-array-mapping.js";
-import defeatingObjectMapping from "./techniques/defeating-object-mapping.js";
-import transformBracketToDot from "./techniques/transform-bracket-to-dot.js";
-import replaceNullToUndefined from "./techniques/replace-null-to-undefined.js";
-import evaluateConditionStatement from "./techniques/evaluate-condition-statement.js";
-import controlFlowUnflattening from "./techniques/control-flow-unflattening.js";
-import removeEmptyStatement from "./techniques/remove-empty-statement.js";
-import evaluateFunction from "./techniques/evaluate-function.js";
+import removeDeadCode from "./techniques/statics/remove-dead-code.js";
+import renameVariableSameScope from "./techniques/statics/rename-variable-same-scope.js";
+import reconstructVariableDeclaration from "./techniques/statics/reconstruct-variable-declaration.js";
+import constantPropagation from "./techniques/statics/constant-propagation.js";
+import evaluate from "./techniques/statics/evaluate.js";
+import replaceSingleConstantViolation from "./techniques/statics/replace-single-constant-violation.js";
+import moveDeclarationBeforeLoop from "./techniques/statics/move-declaration-before-loop.js";
+import replaceOutermostIife from "./techniques/statics/replace-outermost-iife.js";
+import defeatingArrayMapping from "./techniques/statics/defeating-array-mapping.js";
+import defeatingObjectMapping from "./techniques/statics/defeating-object-mapping.js";
+import transformBracketToDot from "./techniques/statics/transform-bracket-to-dot.js";
+import transformSequenceExpression from "./techniques/statics/transform-sequence-expression.js";
+import replaceNullToUndefined from "./techniques/statics/replace-null-to-undefined.js";
+import evaluateConditionStatement from "./techniques/statics/evaluate-condition-statement.js";
+import controlFlowUnflattening from "./techniques/statics/control-flow-unflattening.js";
+import removeEmptyStatement from "./techniques/statics/remove-empty-statement.js";
+import evaluateFunction from "./techniques/dynamics/evaluate-function.js";
 
-export default function deobfuscate(code) {
+export default function deobfuscate(code, dynamic = false) {
   do {
     setChanged(false);
     var out = transform(code, {
       plugins: [
         removeDeadCode,
         renameVariableSameScope,
+        reconstructVariableDeclaration,
         constantPropagation,
         evaluate,
         replaceSingleConstantViolation,
@@ -31,12 +34,13 @@ export default function deobfuscate(code) {
         defeatingArrayMapping,
         defeatingObjectMapping,
         transformBracketToDot,
+        transformSequenceExpression,
         replaceNullToUndefined,
         evaluateConditionStatement,
         controlFlowUnflattening,
         removeEmptyStatement,
-        evaluateFunction,
-      ],
+        dynamic ? evaluateFunction : null,
+      ].filter(Boolean),
       comments: false,
       compact: false,
     });

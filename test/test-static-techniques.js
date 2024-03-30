@@ -3,9 +3,18 @@ import assert from "node:assert/strict";
 
 import deobfuscate from "../src/deobfuscator.js";
 
-function removeNewLinesAndTabs(pieceOfCode) {
-  return pieceOfCode.split("\n").join(" ").split("  ").join("");
-}
+import { removeNewLinesAndTabs } from "../src/utils/util.js";
+
+test("reconstruct variable declarations", () => {
+  assert.strictEqual(
+    removeNewLinesAndTabs(
+      deobfuscate(`
+        var a,b,c;
+        console.log(a,b,c);`)
+    ),
+    `var a; var b; var c; console.log(a, b, c);`
+  );
+});
 
 test("hex to value", () => {
   assert.strictEqual(deobfuscate(`console.log("\x61\x61\x61")`), `console.log("aaa");`);
@@ -13,6 +22,21 @@ test("hex to value", () => {
 
 test("bracket to dot", () => {
   assert.strictEqual(deobfuscate(`console["log"]("a")`), `console.log("a");`);
+});
+
+test("transform sequence expression", () => {
+  assert.strictEqual(
+    removeNewLinesAndTabs(
+      deobfuscate(
+        `
+        var a = 1;
+        var b = 1;
+        a = 2, b = 2;
+        `
+      )
+    ),
+    `var a = 1; var b = 1; a = 2; b = 2;`
+  );
 });
 
 test("remove empty statement", () => {

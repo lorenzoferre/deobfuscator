@@ -2,8 +2,10 @@ export default function () {
   return {
     name: "remove-empty-statement",
     visitor: {
-      EmptyStatement(path) {
-        path.remove();
+      EmptyStatement: {
+        enter(path) {
+          path.remove();
+        },
       },
     },
   };
