@@ -6,15 +6,17 @@ export default function (babel) {
   return {
     name: "transform-bracket-to-dot",
     visitor: {
-      MemberExpression(path) {
-        const { node } = path;
-        let { property } = node;
-        if (!property) return;
-        if (t.isStringLiteral(property)) {
-          node.property = t.identifier(property.value);
-          node.computed = false;
-          setChanged(true);
-        }
+      MemberExpression: {
+        enter(path) {
+          const { node } = path;
+          let { property } = node;
+          if (!property) return;
+          if (t.isStringLiteral(property)) {
+            node.property = t.identifier(property.value);
+            node.computed = false;
+            setChanged(true);
+          }
+        },
       },
     },
   };
