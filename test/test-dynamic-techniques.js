@@ -51,3 +51,42 @@ test("evaluation of arrow functions with literal node type as inputs", () => {
     `console.log(2);`
   );
 });
+
+test("evaluation of update expressions", () => {
+  assert.strictEqual(
+    removeNewLinesAndTabs(
+      deobfuscate(
+        `
+        let a = 5;
+        a++;
+        a *= 2;
+        a--;     
+        console.log(a);
+        `,
+        true
+      )
+    ),
+    `console.log(11);`
+  );
+});
+
+test("evaluation of update expressions in different scopes", () => {
+  assert.strictEqual(
+    removeNewLinesAndTabs(
+      deobfuscate(
+        `
+        let func = (a) => {
+          a++;
+          a *= 2;
+          a--;
+          return a;
+        } 
+        let a = 5;
+        console.log(func(a));
+        `,
+        true
+      )
+    ),
+    `console.log(11);`
+  );
+});
