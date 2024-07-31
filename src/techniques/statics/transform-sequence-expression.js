@@ -1,5 +1,3 @@
-import { setChanged } from "../../utils/util.js";
-
 export default function (babel) {
   return {
     name: "transform-sequence-expression",
@@ -13,7 +11,7 @@ export default function (babel) {
             newExpression.push(expression);
           }
           path.replaceWithMultiple(newExpression);
-          setChanged(true);
+          path.skip();
         },
       },
     },

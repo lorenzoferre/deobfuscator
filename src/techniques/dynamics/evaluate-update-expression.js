@@ -14,10 +14,13 @@ export default function (babel) {
       VariableDeclarator: {
         enter(path) {
           const { node } = path;
+          if (!node.init) return;
           const { scope } = path;
           scopeUid = scope.uid;
           const declaration = generate(node).code;
-          vm.runInContext(declaration, context);
+          try {
+            vm.runInContext(declaration, context);
+          } catch {}
         },
       },
       ExpressionStatement: {
@@ -28,11 +31,13 @@ export default function (babel) {
           const { expression } = node;
           if (t.isUpdateExpression(expression) || t.isAssignmentExpression(expression)) {
             const expressionCode = generate(node).code;
-            const value = vm.runInContext(expressionCode, context);
-            if (value) {
-              path.remove();
-              setChanged(true);
-            }
+            try {
+              const value = vm.runInContext(expressionCode, context);
+              if (value) {
+                path.remove();
+                setChanged(true);
+              }
+            } catch {}
           }
         },
       },
@@ -46,6 +51,11 @@ export default function (babel) {
           const parentFather = path.parentPath.parent;
           if (!t.isExpressionStatement(parentFather)) return;
           if (context.hasOwnProperty(node.name)) {
+            if (
+              typeof context[node.name] === "function" ||
+              typeof context[node.name] === "object"
+            )
+              return;
             path.replaceWith(t.valueToNode(context[node.name]));
             setChanged(true);
           }

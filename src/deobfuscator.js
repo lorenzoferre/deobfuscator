@@ -14,10 +14,10 @@ import transformBracketToDot from "./techniques/statics/transform-bracket-to-dot
 import transformSequenceExpression from "./techniques/statics/transform-sequence-expression.js";
 import replaceNullToUndefined from "./techniques/statics/replace-null-to-undefined.js";
 import evaluateConditionStatement from "./techniques/statics/evaluate-condition-statement.js";
-import controlFlowUnflattening from "./techniques/statics/control-flow-unflattening.js";
 import removeEmptyStatement from "./techniques/statics/remove-empty-statement.js";
 import evaluateFunction from "./techniques/dynamics/evaluate-function.js";
 import evaluateUpdateExpression from "./techniques/dynamics/evaluate-update-expression.js";
+import controlFlowUnflattening from "./techniques/dynamics/control-flow-unflattening.js";
 
 export default function deobfuscate(code, dynamic = false) {
   do {
@@ -38,10 +38,10 @@ export default function deobfuscate(code, dynamic = false) {
         transformSequenceExpression,
         replaceNullToUndefined,
         evaluateConditionStatement,
-        controlFlowUnflattening,
         removeEmptyStatement,
         dynamic ? evaluateFunction : null,
         dynamic ? evaluateUpdateExpression : null,
+        dynamic ? controlFlowUnflattening : null,
       ].filter(Boolean),
       comments: false,
       compact: false,

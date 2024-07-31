@@ -32,11 +32,13 @@ export default function (babel) {
         if (!context.hasOwnProperty(callee.name)) return;
         const args = node.arguments;
         if (!args.every(arg => t.isLiteral(arg))) return;
-        const value = vm.runInContext(generate(node).code, context);
-        if (value) {
-          path.replaceWith(t.valueToNode(value));
-          setChanged(true);
-        }
+        try {
+          const value = vm.runInContext(generate(node).code, context);
+          if (value) {
+            path.replaceWith(t.valueToNode(value));
+            setChanged(true);
+          }
+        } catch {}
       },
     },
   };
