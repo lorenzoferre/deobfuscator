@@ -1,6 +1,6 @@
 {
   "name": "javascript-deob",
-  "version": "1.0.1-beta",
+  "version": "1.0.2-beta",
   "description": "Automation of the javascript deobfuscation process using abstract syntaxt trees",
   "main": "src/deobfuscator.js",
   "scripts": {
