@@ -1,3 +1,6 @@
 node_modules
 .vscode
 main.js
+file.js
+deobfuscatedFile.js
+generate-changelog.sh
