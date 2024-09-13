@@ -5,8 +5,8 @@ export default function () {
       VariableDeclarator: {
         enter(path) {
           const { node, scope } = path;
-          if (!node) return;
-          const { name } = node.id;
+          const { id } = node;
+          const { name } = id;
           const { parent } = scope;
           if (!parent) return;
           for (const binding in parent.bindings) {
