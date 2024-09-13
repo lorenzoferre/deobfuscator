@@ -32,10 +32,12 @@ test("transform sequence expression", () => {
         var a = 1;
         var b = 1;
         a = 2, b = 2;
+        console.log(a);
+        console.log(b);
         `
       )
     ),
-    `var a = 1; var b = 1; a = 2; b = 2;`
+    `console.log(2); console.log(2);`
   );
 });
 
@@ -111,8 +113,17 @@ describe("reachability of function", () => {
 
   test("reachable function", () => {
     assert.strictEqual(
+      removeNewLinesAndTabs(
+        deobfuscate(`function a() {Math.random();} console.log(a());`)
+      ),
+      `function a() { Math.random(); } console.log(a());`
+    );
+  });
+
+  test("reachable function with an empty body", () => {
+    assert.strictEqual(
       removeNewLinesAndTabs(deobfuscate(`function a() {} console.log(a());`)),
-      `function a() {} console.log(a());`
+      `console.log();`
     );
   });
 });
@@ -151,13 +162,21 @@ describe("defeating object mapping", () => {
 });
 
 describe("constant folding", () => {
-  test("constant propagation", () => {
+  test("constant propagation of a literal value", () => {
     assert.strictEqual(deobfuscate(`var a = 5; console.log(a);`), `console.log(5);`);
   });
-  test("non constant value", () => {
+  test("constant propagation of an array expression that has literal values", () => {
     assert.strictEqual(
-      removeNewLinesAndTabs(deobfuscate(`var a = 5; a += 1; console.log(a);`)),
-      `var a = 5; a += 1; console.log(a);`
+      deobfuscate(`var a = [1,2,3]; console.log(a);`),
+      `console.log([1, 2, 3]);`
+    );
+  });
+  test("constant propagation of an array expression that does not contain literal values", () => {
+    assert.strictEqual(
+      removeNewLinesAndTabs(
+        deobfuscate(`var a = [1, 2, Math.random()]; console.log(a);`)
+      ),
+      `var a = [1, 2, Math.random()]; console.log(a);`
     );
   });
 });
