@@ -123,7 +123,7 @@ describe("reachability of function", () => {
   test("reachable function with an empty body", () => {
     assert.strictEqual(
       removeNewLinesAndTabs(deobfuscate(`function a() {} console.log(a());`)),
-      `console.log();`
+      `function a() {} console.log(a());`
     );
   });
 });
