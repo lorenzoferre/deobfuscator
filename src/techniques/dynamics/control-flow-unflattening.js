@@ -1,29 +1,28 @@
 import { setChanged } from "../../utils/util.js";
-import vm from "vm";
-
 import _generate from "@babel/generator";
 const generate = _generate.default;
-
-function buildSwitchCases(switchStatement) {
-  let switchCases = {};
-  for (const switchCase of switchStatement.cases) {
-    const key = switchCase.test.value || switchCase.test.name;
-    switchCases[key] = switchCase.consequent;
-  }
-  return switchCases;
-}
-
-function getNextValue(statement, name, t) {
-  if (!t.isExpressionStatement(statement)) return;
-  const { expression } = statement;
-  if (!t.isAssignmentExpression(expression)) return;
-  const { left, right } = expression;
-  if (left.name !== name) return;
-  return right.value || right.name;
-}
+import vm from "vm";
 
 export default function (babel) {
   const { types: t } = babel;
+
+  function buildSwitchCases(switchStatement) {
+    let switchCases = {};
+    for (const switchCase of switchStatement.cases) {
+      const key = switchCase.test.value || switchCase.test.name;
+      switchCases[key] = switchCase.consequent;
+    }
+    return switchCases;
+  }
+
+  function getNextValue(statement, name) {
+    if (!t.isExpressionStatement(statement)) return;
+    const { expression } = statement;
+    if (!t.isAssignmentExpression(expression)) return;
+    const { left, right } = expression;
+    if (left.name !== name) return;
+    return right.value || right.name;
+  }
 
   return {
     name: "control-flow-unflattening",
@@ -57,7 +56,7 @@ export default function (babel) {
               if (t.isBreakStatement(switchCaseNode)) break;
               if (!t.isBlockStatement(switchCaseNode)) {
                 stuffInOrder.push(switchCaseNode);
-                possibleNextValue = getNextValue(switchCaseNode, name, t);
+                possibleNextValue = getNextValue(switchCaseNode, name);
                 if (!possibleNextValue) continue;
                 value = possibleNextValue;
                 context[name] = value;
@@ -74,7 +73,7 @@ export default function (babel) {
                     vm.createContext(context);
                     context[left.name] = vm.runInContext(generate(right).code, context);
                   }
-                  possibleNextValue = getNextValue(statement, name, t);
+                  possibleNextValue = getNextValue(statement, name);
                   if (!possibleNextValue) continue;
                   value = possibleNextValue;
                   context[name] = value;

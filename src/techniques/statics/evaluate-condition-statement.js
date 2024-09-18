@@ -1,15 +1,15 @@
 import { setChanged } from "../../utils/util.js";
 
-function replaceWithBody(path, branch, t) {
-  if (t.isBlockStatement(branch)) {
-    path.replaceWithMultiple(branch.body);
-  } else {
-    path.replaceWith(branch);
-  }
-}
-
 export default function (babel) {
   const { types: t } = babel;
+
+  function replaceWithBody(path, branch) {
+    if (t.isBlockStatement(branch)) {
+      path.replaceWithMultiple(branch.body);
+    } else {
+      path.replaceWith(branch);
+    }
+  }
 
   return {
     name: "evaluate-condition-statement",
@@ -20,9 +20,9 @@ export default function (babel) {
           const { consequent, alternate } = path.node;
           if (isTruthy === undefined) return;
           if (isTruthy) {
-            replaceWithBody(path, consequent, t);
+            replaceWithBody(path, consequent);
           } else if (alternate != null) {
-            replaceWithBody(path, alternate, t);
+            replaceWithBody(path, alternate);
           } else {
             path.remove();
           }
