@@ -47,7 +47,7 @@ export default function deobfuscate(code) {
   do {
     setChanged(false);
     out = transform(code, {
-      plugins: [removeDeadCode, /*removeEmptyFunction,*/ removeEmptyStatement],
+      plugins: [removeDeadCode, removeEmptyStatement],
       comments: false,
       compact: false,
     });
