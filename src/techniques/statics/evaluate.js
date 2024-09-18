@@ -50,7 +50,7 @@ export default function (babel) {
               }
             } else {
               let name = getNameFromNode(node);
-              if (!name || !context[name]) return;
+              if (!name || context[name] === undefined) return;
               const expressionCode = generate(node).code;
               const evaluatedValue = vm.runInContext(expressionCode, context);
               if (evaluatedValue) {
