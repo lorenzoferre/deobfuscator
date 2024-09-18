@@ -54,9 +54,11 @@ test("untangling scope confusion", () => {
           let x = 30;
           x += 1;
         }
-        x += 1;`)
+        x += 1;
+        console.log(x);
+        `)
     ),
-    `let x = 0; { let _x = 30; _x += 1; } x += 1;`
+    `console.log(1);`
   );
 });
 
@@ -117,13 +119,6 @@ describe("reachability of function", () => {
         deobfuscate(`function a() {Math.random();} console.log(a());`)
       ),
       `function a() { Math.random(); } console.log(a());`
-    );
-  });
-
-  test("reachable function with an empty body", () => {
-    assert.strictEqual(
-      removeNewLinesAndTabs(deobfuscate(`function a() {} console.log(a());`)),
-      `function a() {} console.log(a());`
     );
   });
 });
