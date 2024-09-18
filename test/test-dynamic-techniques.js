@@ -14,8 +14,7 @@ test("evaluation of functions with literal node type as inputs", () => {
             return a + b;
         }
         console.log(sum(2,2));
-        `,
-        true
+        `
       )
     ),
     `console.log(4);`
@@ -29,8 +28,7 @@ test("evaluation of arrow functions with literal node type as inputs and implici
         `
         let sum = (a,b) => a + b;
         console.log(sum(2,2));
-        `,
-        true
+        `
       )
     ),
     `console.log(4);`
@@ -44,8 +42,7 @@ test("evaluation of arrow functions with literal node type as inputs", () => {
         `
         let sub = (a,b) => {return a - b;};
         console.log(sub(4,2));
-        `,
-        true
+        `
       )
     ),
     `console.log(2);`
@@ -62,8 +59,7 @@ test("evaluation of update expressions", () => {
         a *= 2;
         a--;     
         console.log(a);
-        `,
-        true
+        `
       )
     ),
     `console.log(11);`
@@ -83,8 +79,7 @@ test("evaluation of update expressions in different scopes", () => {
         } 
         let a = 5;
         console.log(func(a));
-        `,
-        true
+        `
       )
     ),
     `console.log(11);`

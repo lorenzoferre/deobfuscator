@@ -19,34 +19,40 @@ import evaluateFunction from "./techniques/dynamics/evaluate-function.js";
 import evaluateUpdateExpression from "./techniques/dynamics/evaluate-update-expression.js";
 import controlFlowUnflattening from "./techniques/dynamics/control-flow-unflattening.js";
 
-export default function deobfuscate(code, dynamic = false) {
+export default function deobfuscate(code) {
+  var out = transform(code, {
+    plugins: [
+      renameVariableSameScope,
+      reconstructVariableDeclaration,
+      constantPropagation,
+      evaluate,
+      //replaceSingleConstantViolation,
+      //moveDeclarationBeforeLoop,
+      replaceOutermostIife,
+      defeatingArrayMapping,
+      defeatingObjectMapping,
+      transformBracketToDot,
+      transformSequenceExpression,
+      replaceNullToUndefined,
+      evaluateConditionStatement,
+      evaluateFunction,
+      evaluateUpdateExpression,
+      controlFlowUnflattening,
+    ],
+    comments: false,
+    compact: false,
+  });
+  code = out.code;
+
   do {
     setChanged(false);
-    var out = transform(code, {
-      plugins: [
-        removeDeadCode,
-        renameVariableSameScope,
-        reconstructVariableDeclaration,
-        constantPropagation,
-        evaluate,
-        replaceSingleConstantViolation,
-        moveDeclarationBeforeLoop,
-        replaceOutermostIife,
-        defeatingArrayMapping,
-        defeatingObjectMapping,
-        transformBracketToDot,
-        transformSequenceExpression,
-        replaceNullToUndefined,
-        evaluateConditionStatement,
-        removeEmptyStatement,
-        dynamic ? evaluateFunction : null,
-        dynamic ? evaluateUpdateExpression : null,
-        dynamic ? controlFlowUnflattening : null,
-      ].filter(Boolean),
+    out = transform(code, {
+      plugins: [removeDeadCode, /*removeEmptyFunction,*/ removeEmptyStatement],
       comments: false,
       compact: false,
     });
     code = out.code;
   } while (changed);
+
   return out.code;
 }
