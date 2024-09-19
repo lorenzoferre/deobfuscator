@@ -85,3 +85,25 @@ test("evaluation of update expressions in different scopes", () => {
     `console.log(11);`
   );
 });
+
+test("control flow unflattening", () => {
+  assert.strictEqual(
+    removeNewLinesAndTabs(
+      deobfuscate(
+        `
+        var a = 1;
+        var b,c;
+        do {
+        switch(a) {
+        case 1: { a = 3; } break;
+        case 2: { c = a * b; } break;
+        case 3: { b = 10; a = 2; } break;
+        }
+        }while(c != 20);
+        console.log(c);
+        `
+      )
+    ),
+    `var b; var c; b = 10; c = 2 * b; console.log(c);`
+  );
+});
