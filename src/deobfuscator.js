@@ -4,7 +4,7 @@ import removeDeadCode from "./techniques/statics/remove-dead-code.js";
 import renameVariableSameScope from "./techniques/statics/rename-variable-same-scope.js";
 import reconstructVariableDeclaration from "./techniques/statics/reconstruct-variable-declaration.js";
 import constantPropagation from "./techniques/statics/constant-propagation.js";
-import evaluate from "./techniques/statics/evaluate.js";
+import evaluate from "./techniques/dynamics/evaluate.js";
 import replaceOutermostIife from "./techniques/statics/replace-outermost-iife.js";
 import defeatingArrayMapping from "./techniques/statics/defeating-array-mapping.js";
 import defeatingObjectMapping from "./techniques/statics/defeating-object-mapping.js";
