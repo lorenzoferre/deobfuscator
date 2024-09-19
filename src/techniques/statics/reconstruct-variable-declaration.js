@@ -1,5 +1,3 @@
-import { setChanged } from "../../utils/util.js";
-
 export default function (babel) {
   const { types: t } = babel;
   return {
@@ -8,23 +6,21 @@ export default function (babel) {
       VariableDeclaration: {
         enter(path) {
           const { node } = path;
-          const { parentPath } = path;
+          const { parent } = path;
           const { kind } = node;
           let { declarations } = node;
+          let newDeclarations = [];
           if (declarations.length === 1) return;
           for (const declaration of declarations) {
             if (
-              t.isForStatement(parentPath.node) ||
-              t.isForInStatement(parentPath.node) ||
-              t.isForOfStatement(parentPath.node)
-            ) {
-              parentPath.insertBefore(t.variableDeclaration(kind, [declaration]));
-            } else {
-              path.insertBefore(t.variableDeclaration(kind, [declaration]));
-            }
+              t.isForStatement(parent) ||
+              t.isForInStatement(parent) ||
+              t.isForOfStatement(parent)
+            )
+              continue;
+            newDeclarations.push(t.variableDeclaration(kind, [declaration]));
           }
-          path.remove();
-          setChanged(true);
+          if (newDeclarations.length !== 0) path.replaceWithMultiple(newDeclarations);
         },
       },
     },
