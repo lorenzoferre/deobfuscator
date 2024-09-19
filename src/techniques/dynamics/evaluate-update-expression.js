@@ -15,7 +15,7 @@ export default function (babel) {
 
     // mapping names to values
     if (!init) {
-      context[name] = undefined;
+      context[name] = null;
     } else {
       if (!t.isLiteral(init)) return;
       const { value } = init;
