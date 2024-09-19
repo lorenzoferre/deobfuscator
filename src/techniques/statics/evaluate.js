@@ -53,7 +53,7 @@ export default function (babel) {
               if (!name || context[name] === undefined) return;
               const expressionCode = generate(node).code;
               const evaluatedValue = vm.runInContext(expressionCode, context);
-              if (evaluatedValue) {
+              if (evaluatedValue && typeof evaluatedValue !== "function") {
                 const { scope } = path;
                 const binding = scope.getBinding(name);
                 if (!binding) return;
