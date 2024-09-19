@@ -104,6 +104,6 @@ test("control flow unflattening", () => {
         `
       )
     ),
-    `var b; var c; b = 10; c = 2 * b; console.log(c);`
+    `console.log(20);`
   );
 });
