@@ -1,5 +1,3 @@
-import { setChanged } from "../../utils/util.js";
-
 export default function (babel) {
   const { types: t } = babel;
 
@@ -19,7 +17,6 @@ export default function (babel) {
             if (property.key.value !== node.property.name) continue;
             if (t.isLiteral(property.value)) {
               path.replaceWith(property.value);
-              setChanged(true);
             }
           }
         },

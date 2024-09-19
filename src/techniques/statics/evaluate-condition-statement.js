@@ -1,5 +1,3 @@
-import { setChanged } from "../../utils/util.js";
-
 export default function (babel) {
   const { types: t } = babel;
 
@@ -26,7 +24,6 @@ export default function (babel) {
           } else {
             path.remove();
           }
-          setChanged(true);
         },
       },
     },
