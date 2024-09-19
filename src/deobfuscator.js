@@ -5,8 +5,6 @@ import renameVariableSameScope from "./techniques/statics/rename-variable-same-s
 import reconstructVariableDeclaration from "./techniques/statics/reconstruct-variable-declaration.js";
 import constantPropagation from "./techniques/statics/constant-propagation.js";
 import evaluate from "./techniques/statics/evaluate.js";
-import replaceSingleConstantViolation from "./techniques/statics/replace-single-constant-violation.js";
-import moveDeclarationBeforeLoop from "./techniques/statics/move-declaration-before-loop.js";
 import replaceOutermostIife from "./techniques/statics/replace-outermost-iife.js";
 import defeatingArrayMapping from "./techniques/statics/defeating-array-mapping.js";
 import defeatingObjectMapping from "./techniques/statics/defeating-object-mapping.js";
@@ -24,10 +22,9 @@ export default function deobfuscate(code) {
     plugins: [
       renameVariableSameScope,
       reconstructVariableDeclaration,
+      controlFlowUnflattening,
       constantPropagation,
       evaluate,
-      //replaceSingleConstantViolation,
-      //moveDeclarationBeforeLoop,
       replaceOutermostIife,
       defeatingArrayMapping,
       defeatingObjectMapping,
@@ -37,7 +34,6 @@ export default function deobfuscate(code) {
       evaluateConditionStatement,
       evaluateFunction,
       evaluateUpdateExpression,
-      controlFlowUnflattening,
     ],
     comments: false,
     compact: false,
