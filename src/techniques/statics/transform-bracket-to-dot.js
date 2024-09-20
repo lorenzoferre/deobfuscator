@@ -1,5 +1,3 @@
-import { setChanged } from "../../utils/util.js";
-
 export default function (babel) {
   const { types: t } = babel;
 
@@ -7,14 +5,16 @@ export default function (babel) {
     name: "transform-bracket-to-dot",
     visitor: {
       MemberExpression: {
-        enter(path) {
+        exit(path) {
           const { node } = path;
           let { property } = node;
-          if (!property) return;
-          if (t.isStringLiteral(property)) {
+          if (
+            t.isStringLiteral(property) &&
+            property.value !== "@@iterator" &&
+            !property.value.includes("=")
+          ) {
             node.property = t.identifier(property.value);
             node.computed = false;
-            setChanged(true);
           }
         },
       },

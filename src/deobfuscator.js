@@ -4,9 +4,7 @@ import removeDeadCode from "./techniques/statics/remove-dead-code.js";
 import renameVariableSameScope from "./techniques/statics/rename-variable-same-scope.js";
 import reconstructVariableDeclaration from "./techniques/statics/reconstruct-variable-declaration.js";
 import constantPropagation from "./techniques/statics/constant-propagation.js";
-import evaluate from "./techniques/statics/evaluate.js";
-import replaceSingleConstantViolation from "./techniques/statics/replace-single-constant-violation.js";
-import moveDeclarationBeforeLoop from "./techniques/statics/move-declaration-before-loop.js";
+import evaluate from "./techniques/dynamics/evaluate.js";
 import replaceOutermostIife from "./techniques/statics/replace-outermost-iife.js";
 import defeatingArrayMapping from "./techniques/statics/defeating-array-mapping.js";
 import defeatingObjectMapping from "./techniques/statics/defeating-object-mapping.js";
@@ -16,37 +14,41 @@ import replaceNullToUndefined from "./techniques/statics/replace-null-to-undefin
 import evaluateConditionStatement from "./techniques/statics/evaluate-condition-statement.js";
 import removeEmptyStatement from "./techniques/statics/remove-empty-statement.js";
 import evaluateFunction from "./techniques/dynamics/evaluate-function.js";
-import evaluateUpdateExpression from "./techniques/dynamics/evaluate-update-expression.js";
+import insertVariableWithinContext from "./techniques/dynamics/insert-variable-within-context.js";
 import controlFlowUnflattening from "./techniques/dynamics/control-flow-unflattening.js";
 
-export default function deobfuscate(code, dynamic = false) {
+export default function deobfuscate(code) {
+  var out = transform(code, {
+    plugins: [
+      renameVariableSameScope,
+      reconstructVariableDeclaration,
+      insertVariableWithinContext,
+      controlFlowUnflattening,
+      constantPropagation,
+      evaluate,
+      replaceOutermostIife,
+      defeatingArrayMapping,
+      defeatingObjectMapping,
+      transformBracketToDot,
+      transformSequenceExpression,
+      replaceNullToUndefined,
+      evaluateConditionStatement,
+      evaluateFunction,
+    ],
+    comments: false,
+    compact: false,
+  });
+  code = out.code;
+
   do {
     setChanged(false);
-    var out = transform(code, {
-      plugins: [
-        removeDeadCode,
-        renameVariableSameScope,
-        reconstructVariableDeclaration,
-        constantPropagation,
-        evaluate,
-        replaceSingleConstantViolation,
-        moveDeclarationBeforeLoop,
-        replaceOutermostIife,
-        defeatingArrayMapping,
-        defeatingObjectMapping,
-        transformBracketToDot,
-        transformSequenceExpression,
-        replaceNullToUndefined,
-        evaluateConditionStatement,
-        removeEmptyStatement,
-        dynamic ? evaluateFunction : null,
-        dynamic ? evaluateUpdateExpression : null,
-        dynamic ? controlFlowUnflattening : null,
-      ].filter(Boolean),
+    out = transform(code, {
+      plugins: [removeDeadCode, removeEmptyStatement],
       comments: false,
       compact: false,
     });
     code = out.code;
   } while (changed);
+
   return out.code;
 }

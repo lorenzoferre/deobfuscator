@@ -16,7 +16,6 @@ export default function (babel) {
           const { body } = callee.body;
           if (body.some(node => t.isReturnStatement(node))) return;
           path.replaceWithMultiple(body);
-          //this.#changed = true;
         },
       },
     },

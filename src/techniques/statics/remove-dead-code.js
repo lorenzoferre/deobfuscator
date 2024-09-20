@@ -2,12 +2,14 @@ import { setChanged } from "../../utils/util.js";
 
 export default function () {
   return {
-    name: "remove-empty-statement",
+    name: "remove-dead-code",
     visitor: {
       "VariableDeclarator|FunctionDeclaration": {
         enter(path) {
           const { node, scope } = path;
-          const binding = scope.getBinding(node.id.name);
+          const { id } = node;
+          const { name } = id;
+          const binding = scope.getBinding(name);
           if (!binding) return;
           if (binding.constant && !binding.referenced) {
             path.remove();

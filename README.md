@@ -1,6 +1,9 @@
 ![](https://github.com/lorenzoferre/javascript-deobfuscator/actions/workflows/ci.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+> [!IMPORTANT]
+> At the beginning, the idea was to try to create a deobfuscator as versatile as possible. As I moved forward and went into detail, I discovered that each deobfuscator is very specific, depending on the antibot. However, there are many transformations that could be useful when deobfuscating
+
 # Javascript deobfuscator
 # Usage
 First of all you need to install the package:
@@ -26,19 +29,7 @@ console.log(deobfuscatedCode)
 ```
  
 # Techniques
-### Remove dead code
-It removes parts of the code that are deemed unecessary, such as variables or functions, an example:
-```javascript
-function a() {} 
-function b() {a();} 
-function c() {a(); b();} 
-console.log("a");
-```
-The result:
-```javascript
-console.log("a");
-```
- _a_ function is called by both _b_ and _c_, _b_ is called by _c_, but _c_ is not called by anyone, so none of these functions are actually called.
+There are both static and dynamic techniques, meaning they use the _vm_ module.
 ### Rename variables in the same scope
 It aims to make the code more readable, an example:
 ```javascript
@@ -59,6 +50,48 @@ let x = 0;
 x += 1;
 ```
 Only the variabile _x_ changes within the block statement to avoid any confusion with the global variable _x_.
+
+### Reconstruct variable declarations
+This reconstructs a variable declaration with multiple declarations into separate declarations, each with only one variable. For example:
+```javascript
+var a, b, c = 5;
+```
+The result:
+```javascript
+var a;
+var b;
+var c = 5;
+```
+
+### Insert variables within the context
+It is used to save the variables within the context, allowing for the tracking of variable values and the evaluation of expressions (even when they do not contain only constant values).
+
+### Control flow unflattening
+This technique reconstructs the regular flow of the code. It checks whether the switch test variable identifier is within the _vm_ context. By identifying this value, you can determine which case is accessed first. Once the first case is identified, the test variable's identifier is searched to obtain the next value, allowing access to the next switch case, and so on. Here's an example:
+```javascript
+var a = 1;
+var b,c;
+do {
+switch(a) {
+case 1: { a = 3; } break;
+case 2: { c = a * b; } break;
+case 3: { b = 10; a = 2; } break;
+}
+}while(c != 20);
+console.log(c);
+```
+The result:
+```javascript
+var a = 1;
+var b;
+var c;
+a = 3;
+b = 10;
+a = 2;
+c = a * b;
+console.log(c);
+```
+
 ### Constant propagation
 It propagates constant values across all occurrences, an example:
 ```javascript
@@ -70,14 +103,9 @@ The result:
 console.log(1)
 ```
 After propagating the value, this technique removes the variable declaration.
-A counterexample:
-```javascript
-var a = 1;
-a += 1;
-console.log(a)
-```
-Whenever there is an update or assignment expression, the variable is no longer considered constant, and, as a result, we cannot propagate the value.
-### Evaluation
+
+### Evaluate
+## Static evaluation
 It evaluates expressions that consist solely of constant values, an example:
 ```javascript
 console.log(1 + 1);
@@ -87,21 +115,21 @@ console.log(parseInt("1"));
 The result:
 ```javascript
 console.log(2);
-console.log("Hello";
+console.log("Hello");
 console.log(1);
 ```
-### Replace single constant violations
-It replaces all assignments that violate the constant property with variable declarations. As mentioned earlier, whenever there is at least one assignment, the variable can no longer be considered constant. Therefore, this technique allows for the creation of constant variable declarations.
-An example:
+## Dynamic evaluation
+If the expressions do not contain constant values and cannot be evaluated through `path.evaluate()` of Babel, the plugin checks if the variable is within the context and tries to evaluate it using `vm.runInContext(...)`. If the result is not `undefined` and it is not a `function`, the context is updated, and in some cases, the node is replaced. Here’s an example:
 ```javascript
-var a;
-a = 1;
+var a = 5;
+a += 1;
+console.log(a);
 ```
 The result:
 ```javascript
-
-var a = 1;
+console.log(6);
 ```
+
 ### Replace outermost iife
 It extracts the body of the outermost IIFE and replaces it with this one,
 an example:
@@ -117,6 +145,7 @@ The result is the same in both cases:
 console.log(5);
 ```
 But if there is a return statement inside the IIFE, it remains unchanged.
+
 ### Defeating array mapping
 It replaces member expressions that access array elements with their corresponding values. However, the value inside the array must be a node of the literal type. Here's an example.
 ```javascript
@@ -152,6 +181,22 @@ The result:
 console.log("hello".replace("h","H"));
 ```
 
+### Transform sequence expression
+It transforms sequence expressions into expression statements. Here's an example:
+```javascript
+  var a = 1;
+  var b = 1;
+  a = 2, b = 2;
+```
+The result:
+```javascript
+var a = 1;
+var b = 1;
+a = 2;
+b = 2;
+```
+This plugin is only for improving code readability
+
 ### Replace null values with undefined
 It replaces null values with undefined for later evaluation, an example:
 ```javascript
@@ -165,6 +210,7 @@ The evaluation of the last piece of code is as follows:
 ```javascript
 console.log(1);
 ```
+
 ### Evaluate conditional statements
 It checks whether the test value of if or ternary operators is always true or false. In the first case it replaces the entire if statement with the true branch, and in the second case, it replaces it with the false branch.
 An example:
@@ -183,47 +229,35 @@ The result:
 ```javascript
 
 ```
-### Control flow unflattening
-It reconstructs the regular flow of the code. In special cases it may need to incorporate assignments into variable declarations, such as in the case of a single constant violation, and then move them before loops. This enables the propagation of variables when they are declared with a literal type node.
-##### Move declarations before loops
-If you declare variables inside loops, they are not considered constant. In fact, this technique relocates declarations before loops. Here's an example:
+
+### Evaluate Function
+This plugin evaluates the results of the function if it is within the context and if the arguments of the call expression contain all literal node types. Here’s an example:
 ```javascript
-var a = 1;
-var b,c;
-do {
-switch(a) {
-case 1: { a = 3; } break;
-case 2: { c = a * b; } break;
-case 3: { b = 10; a = 2; } break;
+function add(a, b) {
+    return a + b;
 }
-}while(c != 20);
-console.log(c);
+console.log(add(1,1));
 ```
 The result:
 ```javascript
-var c = a * b;
-var b = 10;
-do {
-  switch (a) {
-    case 1:
-      {
-        a = 3;
-      }
-      break;
-    case 2:
-      {}
-      break;
-    case 3:
-      {
-        a = 2;
-      }
-      break;
-  }
-} while (c != 20);
-console.log(c);
+console.log(2);
 ```
-#### Control flow unflattening
-This technique checks whether the switch test variable identifier is associated with a variable declared using a literal type node. By identifying this value, you can determine which case is accessed first. Once the first one is determined, the test variable's identifier is searched to obtain the next value, allowing access to the next switch case and so on.
+
+### Remove dead code
+It removes parts of the code that are deemed unecessary, such as variables or functions, an example:
+```javascript
+function a() {} 
+function b() {a();} 
+function c() {a(); b();} 
+console.log("a");
+```
+The result:
+```javascript
+console.log("a");
+```
+ _a_ function is called by both _b_ and _c_, _b_ is called by _c_, but _c_ is not called by anyone, so none of these functions are actually called.
+Whenever there is an update or assignment expression, the variable is no longer considered constant, and, as a result, we cannot propagate the value.
+
 ### Remove empty statements
 It removes empty elements, an example:
 ```javascript
@@ -233,34 +267,5 @@ The result:
 ```javascript
 console.log(1);
 ```
-# To do
-I would like to retrieve the results returned by functions, as follows:
-```javascript
-function add(a, b) {
-    return a + b;
-}
-console.log(add(1,1));
-```
-The expected result:
-```javascript
-console.log(2);
-```
-Evaluate dynamic expressions:
-```javascript
-var a = 1;
-a += 1;
-console.log(a);
-```
-The expected result:
-```javascript
-console.log(2);
-```
-Evaluate a special case of Jsfuck notation like the following:
-```javascript
-console.log(([]["flat"] +[])[1]);
-```
-The expected result:
-```javascript
-console.log("u");
-```
+
 Feel free to contribute; I would greatly appreciate it. My goal is to create a deobfuscator that is as versatile as possible. In fact, when I learn to use the _vm_ module, the part of the code responsible for control flow unflattening will need to be rewritten.

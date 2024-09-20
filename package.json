@@ -1,6 +1,6 @@
 {
   "name": "javascript-deob",
-  "version": "1.0.2-beta",
+  "version": "1.0.0",
   "description": "Automation of the javascript deobfuscation process using abstract syntaxt trees",
   "main": "src/deobfuscator.js",
   "scripts": {
@@ -13,7 +13,7 @@
   "keywords": [
     "javascript",
     "deobfuscation",
-    "abstact syntax trees",
+    "abstract syntax trees",
     "ast"
   ],
   "author": "Lorenzo Ferretti",
@@ -25,7 +25,6 @@
   "type": "module",
   "dependencies": {
     "@babel/core": "^7.23.0",
-    "@babel/parser": "^7.23.0",
     "@babel/types": "^7.22.5"
   }
 }

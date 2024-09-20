@@ -1,5 +1,3 @@
-import { setChanged } from "../../utils/util.js";
-
 export default function (babel) {
   const { types: t } = babel;
 
@@ -10,7 +8,13 @@ export default function (babel) {
         enter(path) {
           const { node, scope } = path;
           const { id, init } = node;
-          if (!t.isLiteral(init) && !t.isUnaryExpression(init)) return;
+          if (
+            !t.isLiteral(init) &&
+            !t.isUnaryExpression(init) &&
+            (!t.isArrayExpression(init) ||
+              init.elements.some(element => !t.isLiteral(element)))
+          )
+            return;
           const binding = scope.getBinding(id.name);
           if (!binding) return;
           if (!binding.constant) return;
@@ -18,7 +22,6 @@ export default function (babel) {
             referencePath.replaceWith(init);
           }
           path.remove();
-          setChanged(true);
         },
       },
     },

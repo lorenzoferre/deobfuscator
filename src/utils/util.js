@@ -1,4 +1,8 @@
+import vm from "vm";
 export let changed;
+
+export const context = {};
+vm.createContext(context);
 
 export function setChanged(value) {
   changed = value;
