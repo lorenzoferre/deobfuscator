@@ -1,6 +1,9 @@
 ![](https://github.com/lorenzoferre/javascript-deobfuscator/actions/workflows/ci.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+> [!IMPORTANT]
+> At the beginning, the idea was to try to create a deobfuscator as versatile as possible. As I moved forward and went into detail, I discovered that each deobfuscator is very specific, depending on the antibot. However, there are many transformations that could be useful when deobfuscating
+
 # Javascript deobfuscator
 # Usage
 First of all you need to install the package:
@@ -265,13 +268,4 @@ The result:
 console.log(1);
 ```
 
-### WORK IN PROGRESS
-Evaluate a special case of Jsfuck notation like the following:
-```javascript
-console.log(([]["flat"] +[])[1]);
-```
-The expected result:
-```javascript
-console.log("u");
-```
 Feel free to contribute; I would greatly appreciate it. My goal is to create a deobfuscator that is as versatile as possible. In fact, when I learn to use the _vm_ module, the part of the code responsible for control flow unflattening will need to be rewritten.
