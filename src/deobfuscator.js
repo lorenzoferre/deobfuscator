@@ -14,7 +14,7 @@ import replaceNullToUndefined from "./techniques/statics/replace-null-to-undefin
 import evaluateConditionStatement from "./techniques/statics/evaluate-condition-statement.js";
 import removeEmptyStatement from "./techniques/statics/remove-empty-statement.js";
 import evaluateFunction from "./techniques/dynamics/evaluate-function.js";
-import evaluateUpdateExpression from "./techniques/dynamics/evaluate-update-expression.js";
+import insertVariableWithinContext from "./techniques/dynamics/insert-variable-within-context.js";
 import controlFlowUnflattening from "./techniques/dynamics/control-flow-unflattening.js";
 
 export default function deobfuscate(code) {
@@ -33,7 +33,7 @@ export default function deobfuscate(code) {
       replaceNullToUndefined,
       evaluateConditionStatement,
       evaluateFunction,
-      evaluateUpdateExpression,
+      insertVariableWithinContext,
     ],
     comments: false,
     compact: false,
