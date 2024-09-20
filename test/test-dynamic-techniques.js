@@ -107,3 +107,30 @@ test("control flow unflattening", () => {
     `console.log(20);`
   );
 });
+
+test("dynamic operations", () => {
+  removeNewLinesAndTabs(
+    deobfuscate(
+      `
+      hpQ();
+      ZpQ();
+      function hpQ() {
+          GM = !+[] + !+[],
+          nM = [+!+[]] + [+[]] - +!+[] - +!+[],
+          XM = [+!+[]] + [+[]] - +!+[],
+          IM = +!+[] + !+[] + !+[],
+          LM = [+!+[]] + [+[]] - [];
+      }
+      function ZpQ() {
+          fUQ = GM + LM + XM * LM * LM + GM * LM * LM * LM + nM * LM * LM * LM * LM + GM * LM * LM * LM * LM * LM + IM * LM * LM * LM * LM * LM * LM * LM * LM * LM * LM * LM * LM * LM + XM * LM * LM * LM * LM * LM * LM * LM * LM + LM * LM * LM * LM * LM * LM * LM * LM * LM;
+      }
+      var GM;
+      var XM;
+      var nM;
+      var LM;
+      var IM;
+      `
+    )
+  ),
+    `hpQ(); ZpQ(); function hpQ() {} function ZpQ() { fUQ = 30001900282912; }`;
+});
