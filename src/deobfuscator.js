@@ -22,6 +22,7 @@ export default function deobfuscate(code) {
     plugins: [
       renameVariableSameScope,
       reconstructVariableDeclaration,
+      insertVariableWithinContext,
       controlFlowUnflattening,
       constantPropagation,
       evaluate,
@@ -33,7 +34,6 @@ export default function deobfuscate(code) {
       replaceNullToUndefined,
       evaluateConditionStatement,
       evaluateFunction,
-      insertVariableWithinContext,
     ],
     comments: false,
     compact: false,
