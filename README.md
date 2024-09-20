@@ -235,7 +235,7 @@ function add(a, b) {
 }
 console.log(add(1,1));
 ```
-The expected result:
+The result:
 ```javascript
 console.log(2);
 ```
