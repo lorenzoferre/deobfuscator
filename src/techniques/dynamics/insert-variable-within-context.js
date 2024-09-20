@@ -19,7 +19,7 @@ export default function (babel) {
   }
 
   return {
-    name: "evaluate-update-expression",
+    name: "insert-variable-within-context",
     visitor: {
       Program: {
         enter(path) {
