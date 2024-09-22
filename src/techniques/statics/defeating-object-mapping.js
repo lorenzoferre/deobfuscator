@@ -7,6 +7,8 @@ export default function (babel) {
       MemberExpression: {
         enter(path) {
           const { node, scope } = path;
+          const { parent } = path;
+          if (t.isAssignmentExpression(parent)) return;
           const binding = scope.getBinding(node.object.name);
           if (!binding) return;
           if (!binding.constant) return;
