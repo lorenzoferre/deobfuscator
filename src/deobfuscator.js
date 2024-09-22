@@ -35,6 +35,7 @@ export default function deobfuscate(code) {
       evaluateConditionStatement,
       evaluateFunction,
     ],
+    sourceType: "script",
     comments: false,
     compact: false,
   });
