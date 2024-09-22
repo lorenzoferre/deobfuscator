@@ -9,7 +9,7 @@ export default function (babel) {
     const { name } = id;
 
     // mapping names to values
-    if (!init) {
+    if (init === null) {
       context[name] = null;
     } else {
       if (!t.isLiteral(init)) return;
