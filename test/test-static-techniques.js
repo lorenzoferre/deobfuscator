@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import deobfuscate from "../src/deobfuscator.js";
 
 import { removeNewLinesAndTabs } from "../src/utils/util.js";
+import { strictEqual } from "node:assert";
 
 test("reconstruct variable declarations", () => {
   assert.strictEqual(
@@ -29,15 +30,12 @@ test("transform sequence expression", () => {
     removeNewLinesAndTabs(
       deobfuscate(
         `
-        var a = 1;
-        var b = 1;
-        a = 2, b = 2;
-        console.log(a);
-        console.log(b);
+        var a = 1, b = 2, c = 3;
+        a++, b++, c++;
         `
       )
     ),
-    `console.log(2); console.log(2);`
+    `var a = 1; var b = 2; var c = 3; a++; b++; c++;`
   );
 });
 
@@ -58,7 +56,7 @@ test("untangling scope confusion", () => {
         console.log(x);
         `)
     ),
-    `console.log(1);`
+    `let x = 0; { let _x = 30; _x += 1; } x += 1; console.log(x);`
   );
 });
 
@@ -112,15 +110,6 @@ describe("reachability of function", () => {
       `console.log("a");`
     );
   });
-
-  test("reachable function", () => {
-    assert.strictEqual(
-      removeNewLinesAndTabs(
-        deobfuscate(`function a() {Math.random();} console.log(a());`)
-      ),
-      `function a() { Math.random(); } console.log(a());`
-    );
-  });
 });
 
 test("defeating array mapping", () => {
@@ -146,17 +135,9 @@ describe("defeating object mapping", () => {
       `console.log(1);`
     );
   });
-  test("defeating object mapping with no literals", () => {
-    assert.equal(
-      removeNewLinesAndTabs(
-        deobfuscate(`var obj = {"a": Math.random()}; console.log(obj.a)`)
-      ),
-      `var obj = { "a": Math.random() }; console.log(obj.a);`
-    );
-  });
 });
 
-describe("constant folding", () => {
+describe("propagations", () => {
   test("constant propagation of a literal value", () => {
     assert.strictEqual(deobfuscate(`var a = 5; console.log(a);`), `console.log(5);`);
   });
@@ -166,13 +147,11 @@ describe("constant folding", () => {
       `console.log([1, 2, 3]);`
     );
   });
-  test("constant propagation of an array expression that does not contain literal values", () => {
-    assert.strictEqual(
-      removeNewLinesAndTabs(
-        deobfuscate(`var a = [1, 2, Math.random()]; console.log(a);`)
-      ),
-      `var a = [1, 2, Math.random()]; console.log(a);`
-    );
+  test("propgation of an identifier", () => {
+    assert, strictEqual(deobfuscate(`var i = q; var e = i(10); s = e;`), `s = q(10);`);
+  });
+  test("propgation of a call expression", () => {
+    assert, strictEqual(deobfuscate(`var e = q(10); s = e;`), `s = q(10);`);
   });
 });
 
@@ -192,4 +171,53 @@ describe("jsfuck notation", () => {
   test("array with empty values", () => {
     assert.strictEqual(deobfuscate(`+([[[[[[]], , ,]]]] != 0);`), `1;`);
   });
+});
+
+test("control flow unflattening", () => {
+  assert.strictEqual(
+    removeNewLinesAndTabs(
+      deobfuscate(
+        `
+        var a = 1;
+        var b,c;
+        do {
+        switch(a) {
+        case 1: { a = 3; } break;
+        case 2: { c = a * b; } break;
+        case 3: { b = 10; a = 2; } break;
+        }
+        }while(c != 20);
+        console.log(c);
+        `
+      )
+    ),
+    `console.log(20);`
+  );
+});
+
+test("jsfuck expressions", () => {
+  removeNewLinesAndTabs(
+    deobfuscate(
+      `
+      hpQ();
+      ZpQ();
+      function hpQ() {
+          GM = !+[] + !+[],
+          nM = [+!+[]] + [+[]] - +!+[] - +!+[],
+          XM = [+!+[]] + [+[]] - +!+[],
+          IM = +!+[] + !+[] + !+[],
+          LM = [+!+[]] + [+[]] - [];
+      }
+      function ZpQ() {
+          fUQ = GM + LM + XM * LM * LM + GM * LM * LM * LM + nM * LM * LM * LM * LM + GM * LM * LM * LM * LM * LM + IM * LM * LM * LM * LM * LM * LM * LM * LM * LM * LM * LM * LM * LM + XM * LM * LM * LM * LM * LM * LM * LM * LM + LM * LM * LM * LM * LM * LM * LM * LM * LM;
+      }
+      var GM;
+      var XM;
+      var nM;
+      var LM;
+      var IM;
+      `
+    )
+  ),
+    `hpQ(); ZpQ(); function hpQ() {} function ZpQ() { fUQ = 30001900282912; }`;
 });

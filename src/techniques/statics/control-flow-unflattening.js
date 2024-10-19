@@ -1,8 +1,3 @@
-import { context } from "../../utils/util.js";
-import _generate from "@babel/generator";
-const generate = _generate.default;
-import vm from "vm";
-
 export default function (babel) {
   const { types: t } = babel;
 
@@ -38,11 +33,6 @@ export default function (babel) {
           const switchStatement = body[0];
           if (!t.isSwitchStatement(switchStatement)) return;
           const { name } = switchStatement.discriminant;
-          if (
-            (context[name] === undefined || context[name] === null) &&
-            !t.isLiteral(context[name])
-          )
-            return;
           let stuffInOrder = [];
           let doHaveToSearch = true;
           let maxIterations = 1e3;

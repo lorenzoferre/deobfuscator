@@ -4,7 +4,8 @@ import removeDeadCode from "./techniques/statics/remove-dead-code.js";
 import renameVariableSameScope from "./techniques/statics/rename-variable-same-scope.js";
 import reconstructVariableDeclaration from "./techniques/statics/reconstruct-variable-declaration.js";
 import constantPropagation from "./techniques/statics/constant-propagation.js";
-import evaluate from "./techniques/dynamics/evaluate.js";
+import identifierAndCallExpressionPropagation from "./techniques/statics/identifier-and-call-expression-propagation.js";
+import evaluate from "./techniques/statics/evaluate.js";
 import replaceOutermostIife from "./techniques/statics/replace-outermost-iife.js";
 import defeatingArrayMapping from "./techniques/statics/defeating-array-mapping.js";
 import defeatingObjectMapping from "./techniques/statics/defeating-object-mapping.js";
@@ -13,17 +14,15 @@ import transformSequenceExpression from "./techniques/statics/transform-sequence
 import replaceNullToUndefined from "./techniques/statics/replace-null-to-undefined.js";
 import evaluateConditionStatement from "./techniques/statics/evaluate-condition-statement.js";
 import removeEmptyStatement from "./techniques/statics/remove-empty-statement.js";
-import evaluateFunction from "./techniques/dynamics/evaluate-function.js";
-import insertVariableWithinContext from "./techniques/dynamics/insert-variable-within-context.js";
-import controlFlowUnflattening from "./techniques/dynamics/control-flow-unflattening.js";
+import controlFlowUnflattening from "./techniques/statics/control-flow-unflattening.js";
 
 export default function deobfuscate(code) {
   var out = transform(code, {
     plugins: [
       renameVariableSameScope,
       reconstructVariableDeclaration,
-      insertVariableWithinContext,
-      controlFlowUnflattening,
+      // controlFlowUnflattening,
+      identifierAndCallExpressionPropagation,
       constantPropagation,
       evaluate,
       replaceOutermostIife,
@@ -33,7 +32,6 @@ export default function deobfuscate(code) {
       transformSequenceExpression,
       replaceNullToUndefined,
       evaluateConditionStatement,
-      evaluateFunction,
     ],
     sourceType: "script",
     comments: false,
