@@ -9,7 +9,7 @@ export default function (babel) {
   function buildSwitchCases(switchStatement) {
     let switchCases = {};
     for (const switchCase of switchStatement.cases) {
-      const key = switchCase.test.value || switchCase.test.name;
+      const key = switchCase.test.value ?? switchCase.test.name;
       switchCases[key] = switchCase.consequent;
     }
     return switchCases;
