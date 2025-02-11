@@ -78,7 +78,7 @@ export default function (babel) {
                 }
               }
             }
-            let testOuterLoop = vm.runInContext(generate(node.test).code, context);
+            let testOuterLoop = node.test === null || vm.runInContext(generate(node.test).code, context);
             if (!testOuterLoop) doHaveToSearch = false;
             iteration++;
           }
